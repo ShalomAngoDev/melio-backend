@@ -47,5 +47,5 @@ EXPOSE $PORT
 HEALTHCHECK --interval=10s --timeout=30s --start-period=30s --retries=5 \
   CMD curl -f http://localhost:${PORT:-3000}/api/v1/health/basic || exit 1
 
-# Start application with database setup
-CMD ["bash", "-c", "echo '🚀 Starting Railway deployment...' && echo '🔧 Generating Prisma client...' && npx prisma generate && echo '🗄️ Running database migrations...' && npx prisma migrate deploy && echo '🌱 Seeding database...' && npx prisma db seed && echo '✅ Database setup complete' && echo '🚀 Starting application...' && npm run start:prod"]
+# Start application
+CMD ["npm", "run", "start:prod"]

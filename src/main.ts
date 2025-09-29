@@ -5,7 +5,36 @@ import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import { createServer, IncomingMessage, ServerResponse } from 'http';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { AppModule } from './app.module';
+
+const execAsync = promisify(exec);
+
+// Setup database automatically
+async function setupDatabase() {
+  try {
+    console.log('🔧 Setting up database...');
+    
+    // Generate Prisma client
+    console.log('📦 Generating Prisma client...');
+    await execAsync('npx prisma generate');
+    
+    // Run migrations
+    console.log('🗄️ Running database migrations...');
+    await execAsync('npx prisma migrate deploy');
+    
+    // Seed database
+    console.log('🌱 Seeding database...');
+    await execAsync('npx prisma db seed');
+    
+    console.log('✅ Database setup complete');
+  } catch (error) {
+    console.error('❌ Database setup failed:', error.message);
+    // Don't fail the application if database setup fails
+    console.log('⚠️ Continuing without database setup...');
+  }
+}
 
 // Start a simple health check server immediately
 function startHealthServer(port: number) {
@@ -39,6 +68,9 @@ async function bootstrap() {
   
   // Start health check server immediately
   const healthServer = startHealthServer(port);
+  
+  // Setup database in background (non-blocking)
+  setupDatabase().catch(console.error);
   
   // Now start the full NestJS application
   const app = await NestFactory.create(AppModule);
