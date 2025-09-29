@@ -25,7 +25,8 @@ import { MockRedisService } from './mock-redis.service';
           console.log('🔗 Using REDIS_URL:', redisUrl.replace(/:[^:@]+@/, ':***@'));
           
           // Utiliser directement l'URL avec ioredis
-          return new RedisService(redisUrl, {
+          return new RedisService({
+            url: redisUrl,
             maxRetriesPerRequest: null,
             retryStrategy: (times) => Math.min(times * 500, 5000),
             enableReadyCheck: false,
