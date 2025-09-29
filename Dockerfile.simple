@@ -26,8 +26,6 @@ RUN npx prisma generate
 # Build application
 RUN npm run build
 
-# Copy health server to dist
-COPY src/health-server.js dist/health-server.js
 
 # Remove dev dependencies to reduce image size
 RUN npm prune --omit=dev
@@ -50,5 +48,5 @@ EXPOSE $PORT
 HEALTHCHECK --interval=10s --timeout=30s --start-period=30s --retries=5 \
   CMD curl -f http://localhost:${PORT:-3000}/api/v1/health/basic || exit 1
 
-# Start health server on main port
-CMD ["node", "src/health-server.js"]
+# Start application
+CMD ["npm", "run", "start:prod"]

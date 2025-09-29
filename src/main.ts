@@ -4,75 +4,11 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import * as compression from 'compression';
-import { createServer, IncomingMessage, ServerResponse } from 'http';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import { AppModule } from './app.module';
 
-const execAsync = promisify(exec);
-
-// Setup database automatically
-async function setupDatabase() {
-  try {
-    console.log('🔧 Setting up database...');
-    
-    // Generate Prisma client
-    console.log('📦 Generating Prisma client...');
-    await execAsync('npx prisma generate');
-    
-    // Run migrations
-    console.log('🗄️ Running database migrations...');
-    await execAsync('npx prisma migrate deploy');
-    
-    // Seed database
-    console.log('🌱 Seeding database...');
-    await execAsync('npx prisma db seed');
-    
-    console.log('✅ Database setup complete');
-  } catch (error) {
-    console.error('❌ Database setup failed:', error.message);
-    // Don't fail the application if database setup fails
-    console.log('⚠️ Continuing without database setup...');
-  }
-}
-
-// Start a simple health check server immediately
-function startHealthServer(port: number) {
-  const healthServer = createServer((req: IncomingMessage, res: ServerResponse) => {
-    if (req.url === '/api/v1/health/basic' && req.method === 'GET') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        environment: process.env.NODE_ENV || 'development'
-      }));
-    } else {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Not found' }));
-    }
-  });
-
-  healthServer.listen(port, '0.0.0.0', () => {
-    console.log(`🏥 Health check server running on port ${port}`);
-    console.log(`🔍 Health endpoint: http://0.0.0.0:${port}/api/v1/health/basic`);
-  });
-
-  return healthServer;
-}
-
 async function bootstrap() {
-  // Get port from environment first
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  console.log('🚀 Starting Melio Backend...');
   
-  // Start health check server immediately
-  const healthServer = startHealthServer(port);
-  
-  // Setup database in background (non-blocking)
-  setupDatabase().catch(console.error);
-  
-  // Now start the full NestJS application
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
@@ -140,18 +76,15 @@ async function bootstrap() {
     },
   });
 
-  const appPort = configService.get('PORT', port);
+  const port = configService.get('PORT', 3000);
   const host = configService.get('HOST', '0.0.0.0'); // Écouter sur toutes les interfaces
   
-  // Close the health server since the main app will handle all requests
-  healthServer.close();
-  
-  await app.listen(appPort, host);
+  await app.listen(port, host);
 
-  logger.log(`🚀 Application is running on: http://${host}:${appPort}`);
-  logger.log(`📚 Swagger documentation: http://${host}:${appPort}/${apiPrefix}/docs`);
+  logger.log(`🚀 Application is running on: http://${host}:${port}`);
+  logger.log(`📚 Swagger documentation: http://${host}:${port}/${apiPrefix}/docs`);
   logger.log(`🌍 Environment: ${configService.get('NODE_ENV', 'development')}`);
-  logger.log(`📱 Mobile API: http://192.168.1.107:${appPort}/${apiPrefix}`);
+  logger.log(`📱 Mobile API: http://192.168.1.107:${port}/${apiPrefix}`);
 }
 
 bootstrap();
