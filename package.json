@@ -25,8 +25,7 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f",
-    "prepare": "echo 'Skipping husky in production'"
+    "docker:logs": "docker-compose logs -f"
   },
   "dependencies": {
     "@nestjs/bull": "^10.0.1",
