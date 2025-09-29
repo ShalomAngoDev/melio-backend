@@ -18,8 +18,17 @@ import { MockRedisService } from './mock-redis.service';
         const redisUrl = configService.get('REDIS_URL');
         if (redisUrl) {
           console.log('🔗 Using REDIS_URL:', redisUrl.replace(/:[^:@]+@/, ':***@')); // Log sans password
+          
+          // Parse Redis URL
+          const url = new URL(redisUrl);
+          const host = url.hostname;
+          const port = parseInt(url.port) || 6379;
+          const password = url.password || undefined;
+          
           return new RedisService({
-            url: redisUrl,
+            host,
+            port,
+            password,
             retryDelayOnFailover: 1000,
             enableReadyCheck: false,
             maxRetriesPerRequest: 3,
