@@ -14,8 +14,8 @@ RUN apk add --no-cache \
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force
+# Install dependencies (skip prepare script in production)
+RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts && npm cache clean --force
 
 # Copy source code
 COPY . .
