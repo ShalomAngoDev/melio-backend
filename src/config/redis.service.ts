@@ -6,6 +6,13 @@ export class RedisService extends Redis implements OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
 
   constructor(options: any) {
+    console.log('🔍 RedisService constructor called with options:', {
+      url: options.url ? options.url.replace(/:[^:@]+@/, ':***@') : 'no url',
+      host: options.host || 'no host',
+      port: options.port || 'no port',
+      hasPassword: !!options.password
+    });
+    
     super(options);
     
     this.on('connect', () => {
