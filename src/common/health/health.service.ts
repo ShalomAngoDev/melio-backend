@@ -11,19 +11,30 @@ export class HealthService {
 
   async checkReadiness() {
     try {
-      // Check database connection
-      await this.prisma.$queryRaw`SELECT 1`;
+      const services: Record<string, string> = {};
       
-      // Check Redis connection
-      await this.redis.ping();
+      // Check database connection (required)
+      try {
+        await this.prisma.$queryRaw`SELECT 1`;
+        services.database = 'connected';
+      } catch (error) {
+        services.database = 'disconnected';
+        throw new Error(`Database connection failed: ${error.message}`);
+      }
+      
+      // Check Redis connection (optional)
+      try {
+        await this.redis.ping();
+        services.redis = 'connected';
+      } catch (error) {
+        services.redis = 'disconnected';
+        // Don't fail readiness check if Redis is down
+      }
       
       return {
         status: 'ready',
         timestamp: new Date().toISOString(),
-        services: {
-          database: 'connected',
-          redis: 'connected',
-        },
+        services,
       };
     } catch (error) {
       return {

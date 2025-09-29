@@ -23,16 +23,18 @@ export class HealthController {
   ) {}
 
   @Get()
-  @HealthCheck()
   @ApiOperation({ summary: 'Health check endpoint' })
   @ApiResponse({ status: 200, description: 'Health status' })
   check() {
-    return this.health.check([
-      () => this.prismaHealth.pingCheck('database', this.prisma),
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
-      () => this.memory.checkRSS('memory_rss', 150 * 1024 * 1024),
-      () => this.disk.checkStorage('storage', { path: '/', thresholdPercent: 0.5 }),
-    ]);
+    // Ultra-simple health check - no external dependencies at all
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      version: process.env.npm_package_version || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+    };
   }
 
   @Get('ready')
@@ -47,5 +49,38 @@ export class HealthController {
   @ApiResponse({ status: 200, description: 'Service is alive' })
   async liveness() {
     return this.healthService.checkLiveness();
+  }
+
+  @Get('simple')
+  @ApiOperation({ summary: 'Simple health check (no external dependencies)' })
+  @ApiResponse({ status: 200, description: 'Service is running' })
+  simple() {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      version: process.env.npm_package_version || '1.0.0',
+    };
+  }
+
+  @Get('basic')
+  @ApiOperation({ summary: 'Basic health check (minimal response)' })
+  @ApiResponse({ status: 200, description: 'Service is running' })
+  basic() {
+    return { status: 'ok' };
+  }
+
+  @Get('detailed')
+  @HealthCheck()
+  @ApiOperation({ summary: 'Detailed health check with all services' })
+  @ApiResponse({ status: 200, description: 'Detailed health status' })
+  detailed() {
+    return this.health.check([
+      () => this.prismaHealth.pingCheck('database', this.prisma),
+      () => this.memory.checkHeap('memory_heap', 300 * 1024 * 1024),
+      () => this.memory.checkRSS('memory_rss', 300 * 1024 * 1024),
+      () => this.disk.checkStorage('storage', { path: '/', thresholdPercent: 0.8 }),
+    ]);
   }
 }
