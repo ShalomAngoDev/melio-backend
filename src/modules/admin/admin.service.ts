@@ -147,102 +147,145 @@ export class AdminService {
   }
 
   async getGlobalTemporalStats(period: 'week' | 'month' | 'year' = 'month') {
-    const now = new Date();
-    let startDate: Date;
-    let maxPoints: number;
+    try {
+      const now = new Date();
+      let startDate: Date;
+      let maxPoints: number;
 
-    switch (period) {
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        maxPoints = 7; // 7 jours
-        break;
-      case 'month':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        maxPoints = 10; // 10 points sur 30 jours (tous les 3 jours)
-        break;
-      case 'year':
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        maxPoints = 12; // 12 mois
-        break;
-    }
-
-    // Générer les intervalles de dates avec un nombre limité de points
-    const intervals = [];
-    const totalDays = Math.ceil((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
-    const stepDays = Math.max(1, Math.floor(totalDays / maxPoints));
-
-    for (let i = 0; i < maxPoints; i++) {
-      const intervalStart = new Date(startDate.getTime() + i * stepDays * 24 * 60 * 60 * 1000);
-      const intervalEnd = new Date(intervalStart.getTime() + stepDays * 24 * 60 * 60 * 1000);
-      
-      // S'assurer que le dernier intervalle va jusqu'à maintenant
-      if (i === maxPoints - 1) {
-        intervalEnd.setTime(now.getTime());
+      switch (period) {
+        case 'week':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          maxPoints = 7; // 7 jours
+          break;
+        case 'month':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          maxPoints = 10; // 10 points sur 30 jours (tous les 3 jours)
+          break;
+        case 'year':
+          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          maxPoints = 12; // 12 mois
+          break;
       }
-      
-      intervals.push({
-        start: intervalStart,
-        end: intervalEnd,
-        label: this.formatDateLabel(intervalStart, period)
-      });
-    }
 
-    // Charger les alertes pour chaque intervalle
-    const alertsData = [];
-    for (const interval of intervals) {
-      const alerts = await this.prisma.alert.findMany({
-        where: {
-          createdAt: {
-            gte: interval.start,
-            lt: interval.end
+      // Générer les intervalles de dates avec un nombre limité de points
+      const intervals = [];
+      const totalDays = Math.ceil((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+      const stepDays = Math.max(1, Math.floor(totalDays / maxPoints));
+
+      for (let i = 0; i < maxPoints; i++) {
+        const intervalStart = new Date(startDate.getTime() + i * stepDays * 24 * 60 * 60 * 1000);
+        const intervalEnd = new Date(intervalStart.getTime() + stepDays * 24 * 60 * 60 * 1000);
+        
+        // S'assurer que le dernier intervalle va jusqu'à maintenant
+        if (i === maxPoints - 1) {
+          intervalEnd.setTime(now.getTime());
+        }
+        
+        intervals.push({
+          start: intervalStart,
+          end: intervalEnd,
+          label: this.formatDateLabel(intervalStart, period)
+        });
+      }
+
+      // Charger les alertes pour chaque intervalle (avec gestion d'erreur)
+      const alertsData = [];
+      try {
+        // Vérifier d'abord si la table existe
+        await this.prisma.$queryRaw`SELECT 1 FROM alerts LIMIT 1`;
+        
+          for (const interval of intervals) {
+            const alerts = await this.prisma.alert.findMany({
+              where: {
+                createdAt: {
+                  gte: interval.start,
+                  lt: interval.end
+                }
+              }
+            });
+
+            const critical = alerts.filter(a => a.riskLevel === 'CRITIQUE').length;
+            const high = alerts.filter(a => a.riskLevel === 'ELEVE').length;
+            const medium = alerts.filter(a => a.riskLevel === 'MOYEN').length;
+            const low = alerts.filter(a => a.riskLevel === 'FAIBLE').length;
+
+            alertsData.push({
+              label: interval.label,
+              critical,
+              high,
+              medium,
+              low
+            });
+          }
+        } catch (alertError) {
+          console.log('Tables alertes non disponibles pour les statistiques temporelles:', alertError.message);
+          // Créer des données vides pour chaque intervalle
+          for (const interval of intervals) {
+            alertsData.push({
+              label: interval.label,
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0
+            });
           }
         }
-      });
 
-      const critical = alerts.filter(a => a.riskLevel === 'CRITIQUE').length;
-      const high = alerts.filter(a => a.riskLevel === 'ELEVE').length;
-      const medium = alerts.filter(a => a.riskLevel === 'MOYEN').length;
-      const low = alerts.filter(a => a.riskLevel === 'FAIBLE').length;
+        // Charger les signalements pour chaque intervalle (avec gestion d'erreur)
+        const reportsData = [];
+        try {
+          // Vérifier d'abord si la table existe
+          await this.prisma.$queryRaw`SELECT 1 FROM reports LIMIT 1`;
+          
+          for (const interval of intervals) {
+            const reports = await this.prisma.report.findMany({
+              where: {
+                createdAt: {
+                  gte: interval.start,
+                  lt: interval.end
+                }
+              }
+            });
 
-      alertsData.push({
-        label: interval.label,
-        critical,
-        high,
-        medium,
-        low
-      });
-    }
+            const critical = reports.filter(r => r.urgency === 'CRITICAL').length;
+            const high = reports.filter(r => r.urgency === 'HIGH').length;
+            const medium = reports.filter(r => r.urgency === 'MEDIUM').length;
+            const low = reports.filter(r => r.urgency === 'LOW').length;
 
-    // Charger les signalements pour chaque intervalle
-    const reportsData = [];
-    for (const interval of intervals) {
-      const reports = await this.prisma.report.findMany({
-        where: {
-          createdAt: {
-            gte: interval.start,
-            lt: interval.end
+            reportsData.push({
+              label: interval.label,
+              critical,
+              high,
+              medium,
+              low
+            });
+          }
+        } catch (reportError) {
+          console.log('Tables signalements non disponibles pour les statistiques temporelles:', reportError.message);
+          // Créer des données vides pour chaque intervalle
+          for (const interval of intervals) {
+            reportsData.push({
+              label: interval.label,
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0
+            });
           }
         }
-      });
 
-      const critical = reports.filter(r => r.urgency === 'CRITICAL').length;
-      const high = reports.filter(r => r.urgency === 'HIGH').length;
-      const medium = reports.filter(r => r.urgency === 'MEDIUM').length;
-      const low = reports.filter(r => r.urgency === 'LOW').length;
-
-      reportsData.push({
-        label: interval.label,
-        critical,
-        high,
-        medium,
-        low
-      });
+      return {
+        alerts: alertsData,
+        reports: reportsData
+      };
+    } catch (error) {
+      console.error('Erreur dans getGlobalTemporalStats:', error);
+      // Retourner des données vides en cas d'erreur
+      return {
+        alerts: [],
+        reports: []
+      };
     }
-
-    return {
-      alerts: alertsData,
-      reports: reportsData
-    };
   }
 
   private formatDateLabel(date: Date, period: 'week' | 'month' | 'year'): string {
