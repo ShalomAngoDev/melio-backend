@@ -26,6 +26,9 @@ RUN npx prisma generate
 # Build application
 RUN npm run build
 
+# Copy health server to dist
+COPY src/health-server.js dist/health-server.js
+
 # Remove dev dependencies to reduce image size
 RUN npm prune --omit=dev
 
