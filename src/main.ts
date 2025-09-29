@@ -16,13 +16,16 @@ async function bootstrap() {
     execSync('npx prisma migrate deploy', { stdio: 'inherit' });
     console.log('✅ Prisma migrations completed');
   } catch (error) {
-    console.error('❌ Prisma migration failed, trying manual migration...');
-    try {
-      execSync('node scripts/force-migrate.js', { stdio: 'inherit' });
-      console.log('✅ Manual migration completed');
-    } catch (manualError) {
-      console.error('❌ Manual migration also failed:', manualError.message);
-    }
+    console.error('❌ Prisma migration failed:', error.message);
+  }
+  
+  // Toujours exécuter la migration manuelle pour s'assurer que les tables existent
+  try {
+    console.log('🔄 Running manual migration to ensure tables exist...');
+    execSync('node scripts/force-migrate.js', { stdio: 'inherit' });
+    console.log('✅ Manual migration completed');
+  } catch (manualError) {
+    console.error('❌ Manual migration failed:', manualError.message);
   }
   
   const app = await NestFactory.create(AppModule);
