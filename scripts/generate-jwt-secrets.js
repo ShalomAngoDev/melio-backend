@@ -17,7 +17,7 @@ console.log('API_PREFIX=api/v1');
 console.log(`JWT_SECRET=${jwtSecret}`);
 console.log(`JWT_REFRESH_SECRET=${jwtRefreshSecret}`);
 console.log('BCRYPT_ROUNDS=12');
-console.log('CORS_ORIGINS=https://votre-frontend.vercel.app');
+console.log('CORS_ORIGINS=https://web-6wtmkht7y-shalomdevs-projects.vercel.app,https://melio-frontend.vercel.app');
 console.log('');
 console.log('# Redis (pour les queues et cache)');
 console.log('REDIS_HOST=redis.railway.internal');

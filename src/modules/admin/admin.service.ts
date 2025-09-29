@@ -7,99 +7,136 @@ export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getGlobalStats(period?: 'week' | 'month' | 'year') {
-    // Construire la condition where pour les dates
-    let dateCondition = {};
-    if (period) {
-      const now = new Date();
-      let startDate: Date;
+    try {
+      // Construire la condition where pour les dates
+      let dateCondition = {};
+      if (period) {
+        const now = new Date();
+        let startDate: Date;
 
-      switch (period) {
-        case 'week':
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'month':
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          break;
-        case 'year':
-          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-          break;
+        switch (period) {
+          case 'week':
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case 'month':
+            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          case 'year':
+            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+            break;
+        }
+        
+        dateCondition = { createdAt: { gte: startDate } };
       }
-      
-      dateCondition = { createdAt: { gte: startDate } };
+
+      // Compter les écoles (pas de filtre de date)
+      const totalSchools = await this.prisma.school.count();
+      const activeSchools = await this.prisma.school.count({
+        where: { status: 'ACTIVE' }
+      });
+
+      // Compter les étudiants (pas de filtre de date)
+      const totalStudents = await this.prisma.student.count();
+
+      // Compter les agents (pas de filtre de date)
+      const totalAgents = await this.prisma.agentUser.count();
+
+      // Compter les alertes avec filtre de date (avec gestion d'erreur)
+      let totalAlerts = 0;
+      let criticalAlerts = 0;
+      let resolvedAlerts = 0;
+      let alertsByRiskLevel = { CRITIQUE: 0, ELEVE: 0, MOYEN: 0, FAIBLE: 0 };
+
+      try {
+        totalAlerts = await this.prisma.alert.count({
+          where: dateCondition
+        });
+        criticalAlerts = await this.prisma.alert.count({
+          where: { ...dateCondition, riskLevel: 'CRITIQUE' }
+        });
+        resolvedAlerts = await this.prisma.alert.count({
+          where: { ...dateCondition, status: 'TRAITEE' }
+        });
+
+        // Récupérer les alertes pour calculer la répartition par niveau de risque
+        const alerts = await this.prisma.alert.findMany({
+          where: dateCondition,
+          select: { riskLevel: true }
+        });
+
+        // Calculer la répartition par niveau de risque des alertes
+        alertsByRiskLevel = alerts.reduce((acc, alert) => {
+          acc[alert.riskLevel] = (acc[alert.riskLevel] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+      } catch (alertError) {
+        console.log('Tables alertes non disponibles:', alertError.message);
+      }
+
+      // Compter les signalements avec filtre de date (avec gestion d'erreur)
+      let totalReports = 0;
+      let newReports = 0;
+      let resolvedReports = 0;
+      let reportsByUrgency = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+
+      try {
+        totalReports = await this.prisma.report.count({
+          where: dateCondition
+        });
+        newReports = await this.prisma.report.count({
+          where: { ...dateCondition, status: 'NOUVEAU' }
+        });
+        resolvedReports = await this.prisma.report.count({
+          where: { ...dateCondition, status: 'TRAITE' }
+        });
+
+        // Récupérer les signalements pour calculer la répartition par urgence
+        const reports = await this.prisma.report.findMany({
+          where: dateCondition,
+          select: { urgency: true }
+        });
+
+        // Calculer la répartition par urgence des signalements
+        reportsByUrgency = reports.reduce((acc, report) => {
+          acc[report.urgency] = (acc[report.urgency] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+      } catch (reportError) {
+        console.log('Tables signalements non disponibles:', reportError.message);
+      }
+
+      return {
+        totalSchools,
+        totalStudents,
+        totalAgents,
+        totalAlerts,
+        totalReports,
+        activeSchools,
+        criticalAlerts,
+        resolvedAlerts,
+        newReports,
+        resolvedReports,
+        alertsByRiskLevel,
+        reportsByUrgency,
+      };
+    } catch (error) {
+      console.error('Erreur dans getGlobalStats:', error);
+      // Retourner des valeurs par défaut en cas d'erreur
+      return {
+        totalSchools: 0,
+        totalStudents: 0,
+        totalAgents: 0,
+        totalAlerts: 0,
+        totalReports: 0,
+        activeSchools: 0,
+        criticalAlerts: 0,
+        resolvedAlerts: 0,
+        newReports: 0,
+        resolvedReports: 0,
+        alertsByRiskLevel: { CRITIQUE: 0, ELEVE: 0, MOYEN: 0, FAIBLE: 0 },
+        reportsByUrgency: { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 },
+      };
     }
-
-    // Compter les écoles (pas de filtre de date)
-    const totalSchools = await this.prisma.school.count();
-    const activeSchools = await this.prisma.school.count({
-      where: { status: 'ACTIVE' }
-    });
-
-    // Compter les étudiants (pas de filtre de date)
-    const totalStudents = await this.prisma.student.count();
-
-    // Compter les agents (pas de filtre de date)
-    const totalAgents = await this.prisma.agentUser.count();
-
-    // Compter les alertes avec filtre de date
-    const totalAlerts = await this.prisma.alert.count({
-      where: dateCondition
-    });
-    const criticalAlerts = await this.prisma.alert.count({
-      where: { ...dateCondition, riskLevel: 'CRITIQUE' }
-    });
-    const resolvedAlerts = await this.prisma.alert.count({
-      where: { ...dateCondition, status: 'TRAITEE' }
-    });
-
-    // Compter les signalements avec filtre de date
-    const totalReports = await this.prisma.report.count({
-      where: dateCondition
-    });
-    const newReports = await this.prisma.report.count({
-      where: { ...dateCondition, status: 'NOUVEAU' }
-    });
-    const resolvedReports = await this.prisma.report.count({
-      where: { ...dateCondition, status: 'TRAITE' }
-    });
-
-    // Récupérer les alertes pour calculer la répartition par niveau de risque
-    const alerts = await this.prisma.alert.findMany({
-      where: dateCondition,
-      select: { riskLevel: true }
-    });
-
-    // Récupérer les signalements pour calculer la répartition par urgence
-    const reports = await this.prisma.report.findMany({
-      where: dateCondition,
-      select: { urgency: true }
-    });
-
-    // Calculer la répartition par niveau de risque des alertes
-    const alertsByRiskLevel = alerts.reduce((acc, alert) => {
-      acc[alert.riskLevel] = (acc[alert.riskLevel] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Calculer la répartition par urgence des signalements
-    const reportsByUrgency = reports.reduce((acc, report) => {
-      acc[report.urgency] = (acc[report.urgency] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return {
-      totalSchools,
-      totalStudents,
-      totalAgents,
-      totalAlerts,
-      totalReports,
-      activeSchools,
-      criticalAlerts,
-      resolvedAlerts,
-      newReports,
-      resolvedReports,
-      alertsByRiskLevel,
-      reportsByUrgency,
-    };
   }
 
   async getGlobalTemporalStats(period: 'week' | 'month' | 'year' = 'month') {
