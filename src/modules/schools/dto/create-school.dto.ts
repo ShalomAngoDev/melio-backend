@@ -3,6 +3,18 @@ import { IsString, IsNotEmpty, IsOptional, IsEmail, Matches, Length, MaxLength, 
 
 export class CreateSchoolDto {
   @ApiProperty({
+    description: 'Code unique de l\'établissement (utilisé pour les connexions)',
+    example: 'MELIO001',
+    minLength: 6,
+    maxLength: 20,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Length(6, 20, { message: 'Le code école doit contenir entre 6 et 20 caractères' })
+  @Matches(/^[A-Z0-9]+$/, { message: 'Le code école ne peut contenir que des lettres majuscules et des chiffres' })
+  code: string;
+
+  @ApiProperty({
     description: 'Nom officiel de l\'établissement',
     example: 'Collège Jean Moulin',
     minLength: 2,

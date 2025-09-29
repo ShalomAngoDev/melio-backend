@@ -5,9 +5,20 @@ import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import { AppModule } from './app.module';
+import { execSync } from 'child_process';
 
 async function bootstrap() {
   console.log('🚀 Starting Melio Backend...');
+  
+  // Exécuter les migrations Prisma
+  try {
+    console.log('🔄 Running Prisma migrations...');
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    console.log('✅ Prisma migrations completed');
+  } catch (error) {
+    console.error('❌ Prisma migration failed:', error.message);
+    // Continue même si les migrations échouent
+  }
   
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
