@@ -29,18 +29,8 @@ RUN npm run build
 # Remove dev dependencies to reduce image size
 RUN npm prune --omit=dev
 
-# Create startup script that handles migrations
-RUN echo '#!/bin/sh\n\
-echo "🚀 Starting Railway deployment..."\n\
-echo "🔧 Generating Prisma client..."\n\
-npx prisma generate\n\
-echo "🗄️ Running database migrations..."\n\
-npx prisma migrate deploy\n\
-echo "🌱 Seeding database..."\n\
-npx prisma db seed\n\
-echo "✅ Database setup complete"\n\
-echo "🚀 Starting application..."\n\
-exec npm run start:prod' > /app/start.sh && chmod +x /app/start.sh
+# Install bash for compatibility
+RUN apk add --no-cache bash
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -57,5 +47,5 @@ EXPOSE $PORT
 HEALTHCHECK --interval=10s --timeout=30s --start-period=30s --retries=5 \
   CMD curl -f http://localhost:${PORT:-3000}/api/v1/health/basic || exit 1
 
-# Start application
-CMD ["/app/start.sh"]
+# Start application with database setup
+CMD ["bash", "-c", "echo '🚀 Starting Railway deployment...' && echo '🔧 Generating Prisma client...' && npx prisma generate && echo '🗄️ Running database migrations...' && npx prisma migrate deploy && echo '🌱 Seeding database...' && npx prisma db seed && echo '✅ Database setup complete' && echo '🚀 Starting application...' && npm run start:prod"]
