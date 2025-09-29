@@ -1,27 +1,39 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import * as Minio from 'minio';
 import { MinioConfig } from './minio-config.interface';
 
 @Injectable()
 export class MinioService {
   private readonly logger = new Logger(MinioService.name);
-  private readonly minioClient: Minio.Client;
+  private readonly minioClient?: Minio.Client;
   private readonly bucketName: string;
+  private readonly isEnabled: boolean;
 
-  constructor(private readonly config: MinioConfig) {
-    this.minioClient = new Minio.Client({
-      endPoint: config.endPoint,
-      port: config.port,
-      useSSL: config.useSSL,
-      accessKey: config.accessKey,
-      secretKey: config.secretKey,
-    });
-
-    this.bucketName = config.bucketName || 'melio-files';
+  constructor(@Optional() private readonly config?: MinioConfig) {
+    this.isEnabled = !!(config?.endPoint && config?.accessKey && config?.secretKey);
+    
+    if (this.isEnabled) {
+      this.minioClient = new Minio.Client({
+        endPoint: config!.endPoint,
+        port: config!.port,
+        useSSL: config!.useSSL,
+        accessKey: config!.accessKey,
+        secretKey: config!.secretKey,
+      });
+      this.bucketName = config!.bucketName || 'melio-files';
+    } else {
+      this.bucketName = 'melio-files';
+      this.logger.warn('Minio is disabled - no configuration provided');
+    }
     this.initializeBucket();
   }
 
   private async initializeBucket() {
+    if (!this.isEnabled || !this.minioClient) {
+      this.logger.log('Minio is disabled - skipping bucket initialization');
+      return;
+    }
+
     try {
       const exists = await this.minioClient.bucketExists(this.bucketName);
       if (!exists) {
@@ -40,6 +52,11 @@ export class MinioService {
     filePath: string,
     metaData?: Minio.ItemBucketMetadata,
   ): Promise<string> {
+    if (!this.isEnabled || !this.minioClient) {
+      this.logger.warn('Minio is disabled - file upload skipped');
+      return `minio-disabled://${objectName}`;
+    }
+
     try {
       await this.minioClient.fPutObject(this.bucketName, objectName, filePath, metaData);
       const url = await this.getFileUrl(objectName);
