@@ -64,7 +64,7 @@ import { AdminModule } from './modules/admin/admin.module';
 
     // Config modules
     DatabaseModule,
-    RedisModule, // Re-enabled with Railway config
+    RedisModule, // Re-enabled - Redis service exists on Railway
     // MinioModule,
 
     // Common modules
