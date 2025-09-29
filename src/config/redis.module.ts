@@ -37,6 +37,29 @@ import { MockRedisService } from './mock-redis.service';
           });
         }
         
+        // Try to use public Redis URL from Railway
+        const publicRedisUrl = configService.get('REDIS_PUBLIC_URL');
+        if (publicRedisUrl) {
+          console.log('🔗 Using REDIS_PUBLIC_URL:', publicRedisUrl.replace(/:[^:@]+@/, ':***@'));
+          
+          // Parse Redis URL
+          const url = new URL(publicRedisUrl);
+          const host = url.hostname;
+          const port = parseInt(url.port) || 6379;
+          const password = url.password || undefined;
+          
+          return new RedisService({
+            host,
+            port,
+            password,
+            retryDelayOnFailover: 1000,
+            enableReadyCheck: false,
+            maxRetriesPerRequest: 3,
+            connectTimeout: 15000,
+            lazyConnect: true,
+          });
+        }
+        
         // Use Railway individual variables
         const host = configService.get('REDISHOST') || configService.get('REDIS_HOST', 'localhost');
         const port = configService.get('REDISPORT') || configService.get('REDIS_PORT', 6379);
