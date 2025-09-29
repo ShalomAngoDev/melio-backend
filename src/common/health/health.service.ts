@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
-import { RedisService } from '../../config/redis.service';
+// import { RedisService } from '../../config/redis.service';
 
 @Injectable()
 export class HealthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly redis: RedisService,
+    // private readonly redis: RedisService,
   ) {}
 
   async checkReadiness() {
@@ -22,14 +22,15 @@ export class HealthService {
         throw new Error(`Database connection failed: ${error.message}`);
       }
       
-      // Check Redis connection (optional)
-      try {
-        await this.redis.ping();
-        services.redis = 'connected';
-      } catch (error) {
-        services.redis = 'disconnected';
-        // Don't fail readiness check if Redis is down
-      }
+      // Check Redis connection (désactivé temporairement)
+      // try {
+      //   await this.redis.ping();
+      //   services.redis = 'connected';
+      // } catch (error) {
+      //   services.redis = 'disconnected';
+      //   // Don't fail readiness check if Redis is down
+      // }
+      services.redis = 'disabled';
       
       return {
         status: 'ready',
