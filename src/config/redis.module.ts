@@ -17,6 +17,7 @@ import { MockRedisService } from './mock-redis.service';
         
         const redisUrl = configService.get('REDIS_URL');
         if (redisUrl) {
+          console.log('🔗 Using REDIS_URL:', redisUrl.replace(/:[^:@]+@/, ':***@')); // Log sans password
           return new RedisService(redisUrl);
         }
         
@@ -25,6 +26,8 @@ import { MockRedisService } from './mock-redis.service';
         const port = configService.get('REDIS_PORT', 6379);
         const password = configService.get('REDIS_PASSWORD');
         
+        console.log('🔗 Using individual Redis vars:', { host, port, hasPassword: !!password });
+        
         return new RedisService({
           host,
           port: parseInt(port.toString()),
@@ -32,6 +35,8 @@ import { MockRedisService } from './mock-redis.service';
           retryDelayOnFailover: 100,
           enableReadyCheck: false,
           maxRetriesPerRequest: null,
+          connectTimeout: 10000,
+          lazyConnect: true,
         });
       },
       inject: [ConfigService],
