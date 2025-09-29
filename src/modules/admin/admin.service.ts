@@ -72,7 +72,7 @@ export class AdminService {
         alertsByRiskLevel = alerts.reduce((acc, alert) => {
           acc[alert.riskLevel] = (acc[alert.riskLevel] || 0) + 1;
           return acc;
-        }, {} as Record<string, number>);
+        }, { CRITIQUE: 0, ELEVE: 0, MOYEN: 0, FAIBLE: 0 });
       } catch (alertError) {
         console.log('Tables alertes non disponibles:', alertError.message);
       }
@@ -107,7 +107,7 @@ export class AdminService {
         reportsByUrgency = reports.reduce((acc, report) => {
           acc[report.urgency] = (acc[report.urgency] || 0) + 1;
           return acc;
-        }, {} as Record<string, number>);
+        }, { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 });
       } catch (reportError) {
         console.log('Tables signalements non disponibles:', reportError.message);
       }
