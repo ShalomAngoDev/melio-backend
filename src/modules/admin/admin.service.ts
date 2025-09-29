@@ -47,7 +47,11 @@ export class AdminService {
       let resolvedAlerts = 0;
       let alertsByRiskLevel = { CRITIQUE: 0, ELEVE: 0, MOYEN: 0, FAIBLE: 0 };
 
+      // Vérifier d'abord si la table existe
       try {
+        // Test simple pour vérifier si la table existe
+        await this.prisma.$queryRaw`SELECT 1 FROM alerts LIMIT 1`;
+        
         totalAlerts = await this.prisma.alert.count({
           where: dateCondition
         });
@@ -80,6 +84,9 @@ export class AdminService {
       let reportsByUrgency = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
 
       try {
+        // Test simple pour vérifier si la table existe
+        await this.prisma.$queryRaw`SELECT 1 FROM reports LIMIT 1`;
+        
         totalReports = await this.prisma.report.count({
           where: dateCondition
         });
