@@ -20,6 +20,31 @@ import { MockRedisService } from './mock-redis.service';
         const safe = raw.replace(/:\/\/(.*?):(.*?)@/, '://***:***@');
         console.log('[BOOT] REDIS_URL =', safe);
         
+        // Essayer d'abord REDIS_PUBLIC_URL
+        const publicRedisUrl = configService.get('REDIS_PUBLIC_URL');
+        if (publicRedisUrl && !publicRedisUrl.includes('${{')) {
+          console.log('🔗 Using REDIS_PUBLIC_URL:', publicRedisUrl.replace(/:[^:@]+@/, ':***@'));
+          
+          // Parser l'URL Redis publique
+          const url = new URL(publicRedisUrl);
+          const host = url.hostname;
+          const port = parseInt(url.port) || 6379;
+          const password = url.password || undefined;
+          
+          console.log('🔍 Parsed Redis Public URL:', { host, port, hasPassword: !!password });
+          
+          return new RedisService({
+            host,
+            port,
+            password,
+            maxRetriesPerRequest: null,
+            retryStrategy: (times) => Math.min(times * 500, 5000),
+            enableReadyCheck: false,
+            connectTimeout: 15000,
+            lazyConnect: true,
+          });
+        }
+        
         const redisUrl = configService.get('REDIS_URL');
         if (redisUrl && !redisUrl.includes('${{')) {
           console.log('🔗 Using REDIS_URL:', redisUrl.replace(/:[^:@]+@/, ':***@'));
