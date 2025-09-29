@@ -14,8 +14,8 @@ RUN apk add --no-cache \
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (package.json n'a plus de script prepare)
-RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force
+# Install all dependencies (including dev for build)
+RUN npm ci --legacy-peer-deps && npm cache clean --force
 
 # Copy source code
 COPY . .
@@ -25,6 +25,9 @@ RUN npx prisma generate
 
 # Build application
 RUN npm run build
+
+# Remove dev dependencies to reduce image size
+RUN npm prune --omit=dev
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
