@@ -18,7 +18,14 @@ import { MockRedisService } from './mock-redis.service';
         const redisUrl = configService.get('REDIS_URL');
         if (redisUrl) {
           console.log('🔗 Using REDIS_URL:', redisUrl.replace(/:[^:@]+@/, ':***@')); // Log sans password
-          return new RedisService(redisUrl);
+          return new RedisService({
+            url: redisUrl,
+            retryDelayOnFailover: 1000,
+            enableReadyCheck: false,
+            maxRetriesPerRequest: 3,
+            connectTimeout: 15000,
+            lazyConnect: true,
+          });
         }
         
         // Fallback to individual variables
@@ -32,10 +39,10 @@ import { MockRedisService } from './mock-redis.service';
           host,
           port: parseInt(port.toString()),
           password,
-          retryDelayOnFailover: 100,
+          retryDelayOnFailover: 1000,
           enableReadyCheck: false,
-          maxRetriesPerRequest: null,
-          connectTimeout: 10000,
+          maxRetriesPerRequest: 3,
+          connectTimeout: 15000,
           lazyConnect: true,
         });
       },
