@@ -29,6 +29,19 @@ RUN npm run build
 # Remove dev dependencies to reduce image size
 RUN npm prune --omit=dev
 
+# Create startup script that handles migrations
+RUN echo '#!/bin/sh\n\
+echo "🚀 Starting Railway deployment..."\n\
+echo "🔧 Generating Prisma client..."\n\
+npx prisma generate\n\
+echo "🗄️ Running database migrations..."\n\
+npx prisma migrate deploy\n\
+echo "🌱 Seeding database..."\n\
+npx prisma db seed\n\
+echo "✅ Database setup complete"\n\
+echo "🚀 Starting application..."\n\
+exec npm run start:prod' > /app/start.sh && chmod +x /app/start.sh
+
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nestjs -u 1001
@@ -45,4 +58,4 @@ HEALTHCHECK --interval=10s --timeout=30s --start-period=30s --retries=5 \
   CMD curl -f http://localhost:${PORT:-3000}/api/v1/health/basic || exit 1
 
 # Start application
-CMD ["npm", "run", "start:prod"]
+CMD ["/app/start.sh"]

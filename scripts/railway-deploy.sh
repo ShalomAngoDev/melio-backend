@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Script de déploiement Railway avec gestion de la base de données
 set -e
