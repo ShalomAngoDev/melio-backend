@@ -15,10 +15,20 @@ import { MockRedisService } from './mock-redis.service';
           return new MockRedisService();
         }
         
+        const redisUrl = configService.get('REDIS_URL');
+        if (redisUrl) {
+          return new RedisService(redisUrl);
+        }
+        
+        // Fallback to individual variables
+        const host = configService.get('REDIS_HOST', 'localhost');
+        const port = configService.get('REDIS_PORT', 6379);
+        const password = configService.get('REDIS_PASSWORD');
+        
         return new RedisService({
-          host: configService.get('REDIS_HOST', 'localhost'),
-          port: configService.get('REDIS_PORT', 6379),
-          password: configService.get('REDIS_PASSWORD'),
+          host,
+          port: parseInt(port.toString()),
+          password,
           retryDelayOnFailover: 100,
           enableReadyCheck: false,
           maxRetriesPerRequest: null,

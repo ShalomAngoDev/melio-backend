@@ -8,7 +8,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 // Config
 import { DatabaseModule } from './config/database.module';
 import { RedisModule } from './config/redis.module';
-import { MinioModule } from './config/minio.module';
+// import { MinioModule } from './config/minio.module';
 
 // Common
 import { LoggerModule } from './common/logger/logger.module';
@@ -65,7 +65,7 @@ import { AdminModule } from './modules/admin/admin.module';
     // Config modules
     DatabaseModule,
     RedisModule,
-    MinioModule,
+    // MinioModule,
 
     // Common modules
     LoggerModule,
