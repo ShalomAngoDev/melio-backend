@@ -47,14 +47,14 @@ import { AdminModule } from './modules/admin/admin.module';
       },
     ]),
 
-    // Queue system (désactivé temporairement)
-    // BullModule.forRoot({
-    //   redis: {
-    //     host: process.env.REDIS_HOST || 'localhost',
-    //     port: parseInt(process.env.REDIS_PORT || '6379'),
-    //     password: process.env.REDIS_PASSWORD,
-    //   },
-    // }),
+    // Queue system
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        password: process.env.REDIS_PASSWORD,
+      },
+    }),
 
     // Scheduling
     ScheduleModule.forRoot(),
@@ -64,7 +64,7 @@ import { AdminModule } from './modules/admin/admin.module';
 
     // Config modules
     DatabaseModule,
-    RedisModule,
+    RedisModule, // Re-enabled with Railway config
     // MinioModule,
 
     // Common modules
