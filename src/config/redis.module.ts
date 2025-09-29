@@ -24,9 +24,18 @@ import { MockRedisService } from './mock-redis.service';
         if (redisUrl && !redisUrl.includes('${{')) {
           console.log('🔗 Using REDIS_URL:', redisUrl.replace(/:[^:@]+@/, ':***@'));
           
-          // Utiliser directement l'URL avec ioredis
+          // Parser l'URL Redis manuellement
+          const url = new URL(redisUrl);
+          const host = url.hostname;
+          const port = parseInt(url.port) || 6379;
+          const password = url.password || undefined;
+          
+          console.log('🔍 Parsed Redis URL:', { host, port, hasPassword: !!password });
+          
           return new RedisService({
-            url: redisUrl,
+            host,
+            port,
+            password,
             maxRetriesPerRequest: null,
             retryStrategy: (times) => Math.min(times * 500, 5000),
             enableReadyCheck: false,
