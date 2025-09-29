@@ -8,7 +8,8 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    postgresql-client
+    postgresql-client \
+    curl
 
 # Copy package files
 COPY package*.json ./
@@ -33,12 +34,12 @@ RUN adduser -S nestjs -u 1001
 RUN chown -R nestjs:nodejs /app
 USER nestjs
 
-# Expose port
-EXPOSE 3000
+# Expose port (Railway utilise le PORT env var)
+EXPOSE $PORT
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/v1/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:$PORT/api/v1/health || exit 1
 
 # Start application
 CMD ["npm", "run", "start:prod"]
