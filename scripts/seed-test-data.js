@@ -257,7 +257,7 @@ async function seedTestData() {
       await prisma.journalEntry.create({
         data: {
           studentId: student.id,
-          content: journalContents[Math.floor(Math.random() * journalContents.length)],
+          contentText: journalContents[Math.floor(Math.random() * journalContents.length)],
           mood
         }
       });
