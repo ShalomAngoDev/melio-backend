@@ -172,6 +172,23 @@ async function forceMigrate() {
     
     console.log('✅ Admin user created: admin@melio.com / admin123');
     
+    // Exécuter le seeding des données de test
+    console.log('\n🌱 Démarrage du seeding des données de test...');
+    const { spawn } = require('child_process');
+    
+    const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
+      stdio: 'inherit',
+      cwd: process.cwd()
+    });
+    
+    seedProcess.on('close', (code) => {
+      if (code === 0) {
+        console.log('✅ Seeding terminé avec succès !');
+      } else {
+        console.log('⚠️ Seeding terminé avec des avertissements');
+      }
+    });
+    
   } catch (error) {
     console.error('❌ Error:', error);
   } finally {
