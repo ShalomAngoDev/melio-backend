@@ -29,8 +29,8 @@ async function checkJournalStructure() {
     try {
       const testId = `test_${Date.now()}`;
       const testResult = await prisma.$executeRawUnsafe(`
-        INSERT INTO "journal_entries" ("id", "studentId", "content", "mood", "createdAt", "contentText")
-        VALUES ('${testId}', 'test_student', 'Test content', 'NEUTRE', CURRENT_TIMESTAMP, 'Test content')
+        INSERT INTO "journal_entries" ("id", "studentId", "content", "mood", "createdAt", "updatedAt", "contentText")
+        VALUES ('${testId}', 'test_student', 'Test content', 'NEUTRE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Test content')
         RETURNING id
       `);
       
