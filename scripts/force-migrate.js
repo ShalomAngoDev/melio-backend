@@ -138,8 +138,9 @@ async function forceMigrate() {
       CREATE TABLE IF NOT EXISTS "chat_messages" (
         "id" TEXT NOT NULL,
         "studentId" TEXT NOT NULL,
-        "message" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
         "sender" TEXT NOT NULL,
+        "resourceId" TEXT,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "chat_messages_pkey" PRIMARY KEY ("id")
       );
@@ -201,19 +202,34 @@ async function forceMigrate() {
         });
         
         checkProcess.on('close', (checkCode) => {
-          // Exécuter le seeding des données de test
-          console.log('\n🌱 Démarrage du seeding des données de test...');
-          const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
+          // Corriger chat_messages
+          console.log('\n🔧 Correction de la table chat_messages...');
+          const chatFixProcess = spawn('node', ['scripts/fix-chat-table.js'], {
             stdio: 'inherit',
             cwd: process.cwd()
           });
-          
-          seedProcess.on('close', (seedCode) => {
-            if (seedCode === 0) {
-              console.log('✅ Seeding terminé avec succès !');
+
+          chatFixProcess.on('close', (chatCode) => {
+            if (chatCode === 0) {
+              console.log('✅ Table chat_messages corrigée');
             } else {
-              console.log('⚠️ Seeding terminé avec des avertissements');
+              console.log('⚠️ Correction chat_messages terminée avec des avertissements');
             }
+
+            // Exécuter le seeding des données de test
+            console.log('\n🌱 Démarrage du seeding des données de test...');
+            const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
+              stdio: 'inherit',
+              cwd: process.cwd()
+            });
+            
+            seedProcess.on('close', (seedCode) => {
+              if (seedCode === 0) {
+                console.log('✅ Seeding terminé avec succès !');
+              } else {
+                console.log('⚠️ Seeding terminé avec des avertissements');
+              }
+            });
           });
         });
       });
