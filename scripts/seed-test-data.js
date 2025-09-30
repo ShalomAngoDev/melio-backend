@@ -71,13 +71,13 @@ async function seedTestData() {
       'CP', 'CE1', 'CE2', 'CM1', 'CM2', '6ème', '5ème', '4ème', '3ème', '2nde', '1ère', 'Terminale'
     ];
     
-    const moods = ['Heureux', 'Triste', 'En colère', 'Anxieux', 'Fatigué', 'Excité', 'Calme', 'Stressé', 'Content', 'Inquiet'];
+    const moods = ['TRES_TRISTE', 'TRISTE', 'NEUTRE', 'CONTENT', 'TRES_HEUREUX'];
     
     const riskLevels = ['FAIBLE', 'MOYEN', 'ÉLEVÉ', 'CRITIQUE'];
     
-    const alertStatuses = ['NOUVELLE', 'EN_COURS', 'RÉSOLUE', 'ARCHIVÉE'];
+    const alertStatuses = ['NOUVELLE', 'EN_COURS', 'TRAITEE'];
     
-    const reportStatuses = ['NOUVEAU', 'EN_COURS', 'TRAITÉ', 'CLÔTURÉ'];
+    const reportStatuses = ['NOUVEAU', 'EN_COURS', 'TRAITE'];
     
     const urgencies = ['FAIBLE', 'MOYENNE', 'ÉLEVÉE', 'URGENTE'];
     

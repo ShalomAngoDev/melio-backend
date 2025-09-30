@@ -162,6 +162,25 @@ curl -X GET https://web-production-39a0b.up.railway.app/api/v1/reports \
 - Les dates sont cohérentes (élèves nés entre 2010-2017)
 - Tous les comptes sont actifs et prêts à être utilisés
 
+## 🏷️ Valeurs de Statuts et Moods
+
+### Statuts des Alertes
+- `NOUVELLE` - Nouvelle alerte
+- `EN_COURS` - Alerte en cours de traitement
+- `TRAITEE` - Alerte traitée
+
+### Statuts des Signalements
+- `NOUVEAU` - Nouveau signalement
+- `EN_COURS` - Signalement en cours de traitement
+- `TRAITE` - Signalement traité
+
+### Moods des Entrées de Journal
+- `TRES_TRISTE` - Très triste
+- `TRISTE` - Triste
+- `NEUTRE` - Neutre
+- `CONTENT` - Content
+- `TRES_HEUREUX` - Très heureux
+
 ---
 
 *Fichier généré automatiquement par le script de seeding Melio*
