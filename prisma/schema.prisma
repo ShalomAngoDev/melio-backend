@@ -12,8 +12,8 @@ datasource db {
 
 // Pour le développement local, utilisez SQLite
 // datasource db {
-//   provider = "sqlite"
-//   url      = "file:./dev.db"
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
 // }
 
 // ===== AUTHENTICATION SCHEMA =====
