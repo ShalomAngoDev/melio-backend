@@ -121,10 +121,14 @@ async function forceMigrate() {
       CREATE TABLE IF NOT EXISTS "journal_entries" (
         "id" TEXT NOT NULL,
         "studentId" TEXT NOT NULL,
-        "content" TEXT NOT NULL,
+        "contentText" TEXT NOT NULL,
         "mood" TEXT NOT NULL,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL,
+        "aiRiskScore" INTEGER,
+        "aiRiskLevel" TEXT,
+        "aiSummary" TEXT,
+        "aiAdvice" TEXT,
+        "processedAt" TIMESTAMP(3),
         CONSTRAINT "journal_entries_pkey" PRIMARY KEY ("id")
       );
     `;
@@ -172,22 +176,42 @@ async function forceMigrate() {
     
     console.log('✅ Admin user created: admin@melio.com / admin123');
     
-    // Exécuter le seeding des données de test
-    console.log('\n🌱 Démarrage du seeding des données de test...');
-    const { spawn } = require('child_process');
+    // Corriger la table journal_entries si nécessaire
+    console.log('\n🔧 Correction de la table journal_entries...');
+    try {
+      const { spawn } = require('child_process');
+      
+      const fixProcess = spawn('node', ['scripts/fix-journal-table.js'], {
+        stdio: 'inherit',
+        cwd: process.cwd()
+      });
+      
+      fixProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log('✅ Table journal_entries corrigée');
+        } else {
+          console.log('⚠️ Correction de table terminée avec des avertissements');
+        }
+        
+        // Exécuter le seeding des données de test
+        console.log('\n🌱 Démarrage du seeding des données de test...');
+        const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
+          stdio: 'inherit',
+          cwd: process.cwd()
+        });
+        
+        seedProcess.on('close', (seedCode) => {
+          if (seedCode === 0) {
+            console.log('✅ Seeding terminé avec succès !');
+          } else {
+            console.log('⚠️ Seeding terminé avec des avertissements');
+          }
+        });
+      });
+    } catch (error) {
+      console.error('❌ Erreur lors de la correction:', error);
+    }
     
-    const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
-      stdio: 'inherit',
-      cwd: process.cwd()
-    });
-    
-    seedProcess.on('close', (code) => {
-      if (code === 0) {
-        console.log('✅ Seeding terminé avec succès !');
-      } else {
-        console.log('⚠️ Seeding terminé avec des avertissements');
-      }
-    });
     
   } catch (error) {
     console.error('❌ Error:', error);
