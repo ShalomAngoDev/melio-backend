@@ -193,19 +193,28 @@ async function forceMigrate() {
           console.log('⚠️ Correction de table terminée avec des avertissements');
         }
         
-        // Exécuter le seeding des données de test
-        console.log('\n🌱 Démarrage du seeding des données de test...');
-        const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
+        // Vérifier la structure de la table journal_entries
+        console.log('\n🔍 Vérification de la structure de la table...');
+        const checkProcess = spawn('node', ['scripts/check-journal-structure.js'], {
           stdio: 'inherit',
           cwd: process.cwd()
         });
         
-        seedProcess.on('close', (seedCode) => {
-          if (seedCode === 0) {
-            console.log('✅ Seeding terminé avec succès !');
-          } else {
-            console.log('⚠️ Seeding terminé avec des avertissements');
-          }
+        checkProcess.on('close', (checkCode) => {
+          // Exécuter le seeding des données de test
+          console.log('\n🌱 Démarrage du seeding des données de test...');
+          const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
+            stdio: 'inherit',
+            cwd: process.cwd()
+          });
+          
+          seedProcess.on('close', (seedCode) => {
+            if (seedCode === 0) {
+              console.log('✅ Seeding terminé avec succès !');
+            } else {
+              console.log('⚠️ Seeding terminé avec des avertissements');
+            }
+          });
         });
       });
     } catch (error) {

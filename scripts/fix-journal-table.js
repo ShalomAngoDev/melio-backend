@@ -66,10 +66,10 @@ async function fixJournalTable() {
         if (column === 'aiRiskScore') columnType = 'INTEGER';
         if (column === 'processedAt') columnType = 'TIMESTAMP(3)';
         
-        await prisma.$executeRaw`
+        await prisma.$executeRawUnsafe(`
           ALTER TABLE "journal_entries" 
-          ADD COLUMN IF NOT EXISTS ${column} ${columnType}
-        `;
+          ADD COLUMN IF NOT EXISTS "${column}" ${columnType}
+        `);
         
         console.log(`✅ Colonne ${column} ajoutée`);
       }
