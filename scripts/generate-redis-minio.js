@@ -35,3 +35,4 @@ console.log('6. Ajoutez Redis et Minio comme services');
 console.log('7. Redéployez l\'application\n');
 
 console.log('✅ Les clés sont générées de manière sécurisée !');
+

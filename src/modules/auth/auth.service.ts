@@ -154,7 +154,7 @@ export class AuthService {
     });
 
     if (!admin) {
-      throw new UnauthorizedException('Email invalide');
+      throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
 
     const isPasswordValid = await bcrypt.compare(password, admin.password);

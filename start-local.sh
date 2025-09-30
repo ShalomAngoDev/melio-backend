@@ -44,3 +44,4 @@ npx prisma db seed
 # Démarrer l'application
 echo "🚀 Starting application..."
 npm run start:dev
+
