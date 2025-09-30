@@ -81,13 +81,80 @@ async function forceMigrate() {
       );
     `;
     
+    // Créer la table alerts
+    await prisma.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "alerts" (
+        "id" TEXT NOT NULL,
+        "schoolId" TEXT NOT NULL,
+        "studentId" TEXT NOT NULL,
+        "sourceId" TEXT NOT NULL,
+        "sourceType" TEXT NOT NULL DEFAULT 'JOURNAL',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "riskLevel" TEXT NOT NULL,
+        "riskScore" INTEGER NOT NULL,
+        "childMood" TEXT NOT NULL,
+        "aiSummary" TEXT NOT NULL,
+        "aiAdvice" TEXT NOT NULL,
+        "status" TEXT NOT NULL DEFAULT 'NOUVELLE',
+        CONSTRAINT "alerts_pkey" PRIMARY KEY ("id")
+      );
+    `;
+    
+    // Créer la table reports
+    await prisma.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "reports" (
+        "id" TEXT NOT NULL,
+        "schoolId" TEXT NOT NULL,
+        "studentId" TEXT,
+        "content" TEXT NOT NULL,
+        "urgency" TEXT NOT NULL,
+        "anonymous" BOOLEAN NOT NULL DEFAULT false,
+        "status" TEXT NOT NULL DEFAULT 'NOUVEAU',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "reports_pkey" PRIMARY KEY ("id")
+      );
+    `;
+    
+    // Créer la table journal_entries
+    await prisma.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "journal_entries" (
+        "id" TEXT NOT NULL,
+        "studentId" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "mood" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "journal_entries_pkey" PRIMARY KEY ("id")
+      );
+    `;
+    
+    // Créer la table chat_messages
+    await prisma.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "chat_messages" (
+        "id" TEXT NOT NULL,
+        "studentId" TEXT NOT NULL,
+        "message" TEXT NOT NULL,
+        "sender" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "chat_messages_pkey" PRIMARY KEY ("id")
+      );
+    `;
+    
     // Créer les index et contraintes
     await prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "admin_users_email_key" ON "admin_users"("email");`;
     await prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "schools_code_key" ON "schools"("code");`;
     await prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "agent_users_email_key" ON "agent_users"("email");`;
     await prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "students_schoolId_uniqueId_key" ON "students"("schoolId", "uniqueId");`;
     
-    console.log('✅ Tables created successfully!');
+    // Index pour les nouvelles tables
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "alerts_schoolId_status_createdAt_idx" ON "alerts"("schoolId", "status", "createdAt");`;
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "reports_schoolId_status_idx" ON "reports"("schoolId", "status");`;
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "reports_studentId_createdAt_idx" ON "reports"("studentId", "createdAt");`;
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "journal_entries_studentId_createdAt_idx" ON "journal_entries"("studentId", "createdAt");`;
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "chat_messages_studentId_createdAt_idx" ON "chat_messages"("studentId", "createdAt");`;
+    
+    console.log('✅ All tables created successfully!');
     
     // Créer l'admin par défaut
     const bcrypt = require('bcrypt');
