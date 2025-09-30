@@ -284,7 +284,7 @@ async function seedTestData() {
       await prisma.chatMessage.create({
         data: {
           studentId: student.id,
-          message: messages[Math.floor(Math.random() * messages.length)],
+          content: messages[Math.floor(Math.random() * messages.length)],
           sender
         }
       });
