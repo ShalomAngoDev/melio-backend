@@ -254,13 +254,13 @@ async function seedTestData() {
         `J'ai passé une journée normale. Je me sens ${mood.toLowerCase()}.`
       ];
       
-      await prisma.journalEntry.create({
-        data: {
-          studentId: student.id,
-          contentText: journalContents[Math.floor(Math.random() * journalContents.length)],
-          mood
-        }
-      });
+      const journalId = `journal_${Math.random().toString(36).substring(2, 15)}`;
+      const content = journalContents[Math.floor(Math.random() * journalContents.length)];
+      
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO "journal_entries" ("id", "studentId", "contentText", "mood", "createdAt")
+        VALUES ('${journalId}', '${student.id}', '${content}', '${mood}', CURRENT_TIMESTAMP)
+      `);
     }
     console.log('✅ 50 entrées de journal créées');
     
