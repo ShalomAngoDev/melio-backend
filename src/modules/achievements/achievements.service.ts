@@ -94,9 +94,7 @@ export class AchievementsService {
       const lastDate = new Date(student.lastEntryDate);
       lastDate.setHours(0, 0, 0, 0);
 
-      const diffDays = Math.floor(
-        (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
 
       if (diffDays === 0) {
         // Même jour, pas de changement
@@ -111,8 +109,7 @@ export class AchievementsService {
     }
 
     // Mettre à jour le record si nécessaire
-    const newBestStreak =
-      newStreak > student.bestStreak ? newStreak : student.bestStreak;
+    const newBestStreak = newStreak > student.bestStreak ? newStreak : student.bestStreak;
 
     await this.prisma.student.update({
       where: { id: studentId },
@@ -140,10 +137,7 @@ export class AchievementsService {
   /**
    * Vérifier et débloquer un badge
    */
-  async unlockAchievement(
-    studentId: string,
-    achievementCode: string,
-  ): Promise<boolean> {
+  async unlockAchievement(studentId: string, achievementCode: string): Promise<boolean> {
     // Vérifier si déjà débloqué
     const existing = await this.prisma.studentAchievement.findFirst({
       where: {
@@ -174,9 +168,7 @@ export class AchievementsService {
       },
     });
 
-    this.logger.log(
-      `🏆 Badge débloqué pour ${studentId}: ${achievement.name}`,
-    );
+    this.logger.log(`🏆 Badge débloqué pour ${studentId}: ${achievement.name}`);
 
     return true;
   }
@@ -204,10 +196,7 @@ export class AchievementsService {
   /**
    * Vérifier les badges de streak
    */
-  private async checkStreakAchievements(
-    studentId: string,
-    currentStreak: number,
-  ): Promise<void> {
+  private async checkStreakAchievements(studentId: string, currentStreak: number): Promise<void> {
     if (currentStreak >= 7) {
       await this.unlockAchievement(studentId, 'week_streak');
     }
@@ -227,13 +216,7 @@ export class AchievementsService {
     });
 
     const uniqueMoods = new Set(entries.map((e) => e.mood));
-    const allMoods = [
-      'TRES_TRISTE',
-      'TRISTE',
-      'NEUTRE',
-      'CONTENT',
-      'TRES_HEUREUX',
-    ];
+    const allMoods = ['TRES_TRISTE', 'TRISTE', 'NEUTRE', 'CONTENT', 'TRES_HEUREUX'];
 
     if (allMoods.every((mood) => uniqueMoods.has(mood))) {
       await this.unlockAchievement(studentId, 'rainbow');
@@ -251,13 +234,12 @@ export class AchievementsService {
     totalAchievements: number;
     recentAchievements: AchievementDto[];
   }> {
-    const [totalEntries, streak, achievements, allAchievements] =
-      await Promise.all([
-        this.prisma.journalEntry.count({ where: { studentId } }),
-        this.getStudentStreak(studentId),
-        this.getStudentAchievements(studentId),
-        this.findAll(),
-      ]);
+    const [totalEntries, streak, achievements, allAchievements] = await Promise.all([
+      this.prisma.journalEntry.count({ where: { studentId } }),
+      this.getStudentStreak(studentId),
+      this.getStudentAchievements(studentId),
+      this.findAll(),
+    ]);
 
     return {
       totalEntries,
@@ -269,4 +251,3 @@ export class AchievementsService {
     };
   }
 }
-

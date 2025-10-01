@@ -271,8 +271,8 @@ async function seedTestData() {
       const content = journalContents[Math.floor(Math.random() * journalContents.length)];
       
       await prisma.$executeRawUnsafe(`
-        INSERT INTO "journal_entries" ("id", "studentId", "content", "mood", "createdAt", "updatedAt", "contentText")
-        VALUES ('${journalId}', '${student.id}', '${content.replace(/'/g, "''")}', '${mood}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '${content.replace(/'/g, "''")}')
+        INSERT INTO "journal_entries" ("id", "studentId", "mood", "contentText", "createdAt")
+        VALUES ('${journalId}', '${student.id}', '${mood}', '${content.replace(/'/g, "''")}', CURRENT_TIMESTAMP)
       `);
     }
     console.log('✅ 50 entrées de journal créées');

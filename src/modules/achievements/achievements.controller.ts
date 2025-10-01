@@ -1,10 +1,5 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AchievementsService } from './achievements.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -38,7 +33,7 @@ export class AchievementsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT, Role.AGENT, Role.ADMIN_MELIO)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Récupérer le streak d\'un élève' })
+  @ApiOperation({ summary: "Récupérer le streak d'un élève" })
   async getStudentStreak(@Param('studentId') studentId: string) {
     return this.achievementsService.getStudentStreak(studentId);
   }
@@ -47,9 +42,8 @@ export class AchievementsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT, Role.AGENT, Role.ADMIN_MELIO)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Récupérer les progrès complets d\'un élève' })
+  @ApiOperation({ summary: "Récupérer les progrès complets d'un élève" })
   async getStudentProgress(@Param('studentId') studentId: string) {
     return this.achievementsService.getStudentProgress(studentId);
   }
 }
-
