@@ -73,9 +73,9 @@ model Student {
   updatedAt      DateTime @updatedAt
 
   // V2: Gamification
-  currentStreak  Int      @default(0)
-  bestStreak     Int      @default(0)
-  lastEntryDate  DateTime?
+  currentStreak  Int      @default(0) @map("current_streak")
+  bestStreak     Int      @default(0) @map("best_streak")
+  lastEntryDate  DateTime? @map("last_entry_date")
 
   journalEntries JournalEntry[]
   alerts         Alert[]
@@ -126,7 +126,7 @@ model JournalEntry {
 
   // V2: Personnalisation
   color       String?  @default("pink")
-  coverImage  String?
+  coverImage  String?  @map("cover_image")
 
   // Analyse IA
   aiRiskScore Int?     // 0–100
@@ -247,7 +247,7 @@ model Tag {
   icon      String?
   color     String   @default("#ec4899")
   category  String?
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   entries   JournalEntryTag[]
 
@@ -255,9 +255,9 @@ model Tag {
 }
 
 model JournalEntryTag {
-  journalEntryId String
+  journalEntryId String       @map("journal_entry_id")
   journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
-  tagId          String
+  tagId          String       @map("tag_id")
   tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([journalEntryId, tagId])
@@ -276,7 +276,7 @@ model Achievement {
   icon        String
   category    String   // WRITING | STREAK | ENGAGEMENT | SPECIAL
   threshold   Int?     // Nombre requis pour débloquer (ex: 7 pour week_streak)
-  createdAt   DateTime @default(now())
+  createdAt   DateTime @default(now()) @map("created_at")
 
   students    StudentAchievement[]
 
@@ -285,11 +285,11 @@ model Achievement {
 
 model StudentAchievement {
   id            String   @id @default(cuid())
-  studentId     String
+  studentId     String   @map("student_id")
   student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  achievementId String
+  achievementId String   @map("achievement_id")
   achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-  unlockedAt    DateTime @default(now())
+  unlockedAt    DateTime @default(now()) @map("unlocked_at")
 
   @@unique([studentId, achievementId])
   @@index([studentId])
