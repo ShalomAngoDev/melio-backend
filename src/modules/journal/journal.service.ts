@@ -164,6 +164,45 @@ export class JournalService {
   }
 
   /**
+   * Met à jour une entrée de journal
+   */
+  async updateJournalEntry(
+    entryId: string,
+    studentId: string,
+    schoolId: string,
+    updateJournalEntryDto: CreateJournalEntryDto,
+  ): Promise<JournalEntryResponseDto> {
+    // Vérifier que l'entrée existe et appartient à l'élève
+    const existingEntry = await this.prisma.journalEntry.findFirst({
+      where: {
+        id: entryId,
+        studentId,
+        student: {
+          schoolId,
+        },
+      },
+    });
+
+    if (!existingEntry) {
+      throw new NotFoundException('Entrée de journal non trouvée');
+    }
+
+    // Mettre à jour l'entrée
+    const updatedEntry = await this.prisma.journalEntry.update({
+      where: { id: entryId },
+      data: {
+        mood: updateJournalEntryDto.mood,
+        contentText: updateJournalEntryDto.contentText,
+        // TODO V2: Ajouter color, coverImage, tags quand DTO sera mis à jour
+      },
+    });
+
+    this.logger.log(`Journal entry updated: ${entryId}`);
+
+    return this.mapToResponseDto(updatedEntry);
+  }
+
+  /**
    * Crée une alerte pour les agents
    */
   private async createAlert(

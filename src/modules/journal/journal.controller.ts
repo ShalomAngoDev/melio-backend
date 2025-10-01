@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   Param,
   Query,
@@ -116,5 +117,34 @@ export class JournalController {
     }
 
     return this.journalService.getJournalEntry(entryId, studentId, req.user.schoolId);
+  }
+
+  @Patch(':entryId')
+  @Roles(Role.STUDENT)
+  @ApiOperation({ summary: 'Modifier une entrée de journal' })
+  @ApiResponse({
+    status: 200,
+    description: 'Entrée de journal modifiée avec succès',
+    type: JournalEntryResponseDto,
+  })
+  @ApiResponse({ status: 403, description: 'Accès refusé' })
+  @ApiResponse({ status: 404, description: 'Entrée de journal non trouvée' })
+  async updateJournalEntry(
+    @Param('studentId') studentId: string,
+    @Param('entryId') entryId: string,
+    @Body() updateJournalEntryDto: CreateJournalEntryDto,
+    @Request() req: any,
+  ): Promise<JournalEntryResponseDto> {
+    // Vérifier que l'élève peut accéder à son propre journal
+    if (req.user.sub !== studentId) {
+      throw new Error('Accès non autorisé à ce journal');
+    }
+
+    return this.journalService.updateJournalEntry(
+      entryId,
+      studentId,
+      req.user.schoolId,
+      updateJournalEntryDto,
+    );
   }
 }
