@@ -127,6 +127,7 @@ model JournalEntry {
   // V2: Personnalisation
   color       String?  @default("pink")
   coverImage  String?  @map("cover_image")
+  photos      String[] // URLs des photos uploadées
 
   // Analyse IA
   aiRiskScore Int?     // 0–100

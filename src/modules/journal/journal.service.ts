@@ -44,10 +44,26 @@ export class JournalService {
         studentId,
         mood: createJournalEntryDto.mood,
         contentText: createJournalEntryDto.contentText,
+        // V2: Champs de personnalisation
+        color: createJournalEntryDto.color || 'pink',
+        coverImage: createJournalEntryDto.coverImage,
+        photos: createJournalEntryDto.photos || [],
       },
     });
 
     this.logger.log(`Journal entry created for student ${studentId}: ${journalEntry.id}`);
+
+    // V2: Gérer les tags si fournis
+    if (createJournalEntryDto.tags && createJournalEntryDto.tags.length > 0) {
+      const tagConnections = createJournalEntryDto.tags.map(tagId => ({
+        journalEntryId: journalEntry.id,
+        tagId: tagId,
+      }));
+
+      await this.prisma.journalEntryTag.createMany({
+        data: tagConnections,
+      });
+    }
 
     // Récupérer les données de récurrence (mémoire 14 jours)
     const recurrenceData = await this.getRecurrenceData(studentId);
@@ -133,6 +149,13 @@ export class JournalService {
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
+      include: {
+        tags: {
+          include: {
+            tag: true
+          }
+        }
+      }
     });
 
     return entries.map((entry) => this.mapToResponseDto(entry));
@@ -154,6 +177,13 @@ export class JournalService {
           schoolId,
         },
       },
+      include: {
+        tags: {
+          include: {
+            tag: true
+          }
+        }
+      }
     });
 
     if (!entry) {
@@ -193,9 +223,30 @@ export class JournalService {
       data: {
         mood: updateJournalEntryDto.mood,
         contentText: updateJournalEntryDto.contentText,
-        // TODO V2: Ajouter color, coverImage, tags quand DTO sera mis à jour
+        // V2: Champs de personnalisation
+        color: updateJournalEntryDto.color,
+        coverImage: updateJournalEntryDto.coverImage,
+        photos: updateJournalEntryDto.photos,
       },
     });
+
+    // V2: Gérer les tags si fournis
+    if (updateJournalEntryDto.tags && updateJournalEntryDto.tags.length > 0) {
+      // Supprimer les anciens tags
+      await this.prisma.journalEntryTag.deleteMany({
+        where: { journalEntryId: entryId },
+      });
+
+      // Ajouter les nouveaux tags
+      const tagConnections = updateJournalEntryDto.tags.map(tagId => ({
+        journalEntryId: entryId,
+        tagId: tagId,
+      }));
+
+      await this.prisma.journalEntryTag.createMany({
+        data: tagConnections,
+      });
+    }
 
     this.logger.log(`Journal entry updated: ${entryId}`);
 
@@ -304,6 +355,11 @@ export class JournalService {
       aiSummary: entry.aiSummary,
       aiAdvice: entry.aiAdvice,
       processedAt: entry.processedAt,
+      // V2: Champs de personnalisation
+      color: entry.color,
+      coverImage: entry.coverImage,
+      photos: entry.photos || [],
+      tags: entry.tags?.map((t: any) => t.tagId) || [],
     };
   }
 }

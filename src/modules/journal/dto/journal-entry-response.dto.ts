@@ -37,4 +37,17 @@ export class JournalEntryResponseDto {
 
   @ApiProperty({ description: "Date de traitement par l'IA", required: false })
   processedAt?: Date;
+
+  // V2: Champs de personnalisation
+  @ApiProperty({ description: 'Couleur de personnalisation', required: false })
+  color?: string;
+
+  @ApiProperty({ description: 'Image de couverture', required: false })
+  coverImage?: string;
+
+  @ApiProperty({ description: 'Tags associés', required: false, type: [String] })
+  tags?: string[];
+
+  @ApiProperty({ description: 'URLs des photos', required: false, type: [String] })
+  photos?: string[];
 }

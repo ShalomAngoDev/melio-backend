@@ -8,7 +8,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 // Config
 import { DatabaseModule } from './config/database.module';
 import { RedisModule } from './config/redis.module';
-// import { MinioModule } from './config/minio.module';
+import { MinioModule } from './config/minio.module';
 
 // Common
 import { LoggerModule } from './common/logger/logger.module';
@@ -32,6 +32,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { AchievementsModule } from './modules/achievements/achievements.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -80,7 +81,7 @@ import { AchievementsModule } from './modules/achievements/achievements.module';
     // Config modules
     DatabaseModule,
     RedisModule, // Re-enabled - Redis service exists on Railway
-    // MinioModule,
+    MinioModule, // V2: Upload de photos
 
     // Common modules
     LoggerModule,
@@ -104,6 +105,7 @@ import { AchievementsModule } from './modules/achievements/achievements.module';
     AdminModule,
     TagsModule, // V2: Système de tags
     AchievementsModule, // V2: Gamification (badges et streaks)
+    UploadModule, // V2: Upload de photos
   ],
 })
 export class AppModule {}
