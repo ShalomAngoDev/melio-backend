@@ -25,7 +25,17 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f"
+    "docker:logs": "docker-compose logs -f",
+    "setup": "node scripts/setup-local.js",
+    "check": "node scripts/check-requirements.js",
+    "db:create": "node scripts/create-database.js",
+    "dev": "npm run check && npm run setup && npm run prisma:generate && npm run prisma:migrate && npm run start:dev",
+    "prod": "npm run check && npm run setup && npm run build && npm run prisma:generate && npm run prisma:deploy && npm run start:prod",
+    "db:setup": "npm run prisma:generate && npm run prisma:migrate && node scripts/force-migrate.js",
+    "db:seed": "node scripts/seed-test-data.js",
+    "db:reset": "node scripts/clean-database.js && node scripts/seed-test-data.js",
+    "local:start": "npm run dev",
+    "local:prod": "npm run prod"
   },
   "dependencies": {
     "@nestjs/bull": "^10.0.1",

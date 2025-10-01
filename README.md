@@ -4,23 +4,37 @@ API sécurisée RGPD pour l'application Melio de lutte contre le harcèlement sc
 
 ## 🚀 Démarrage rapide
 
-### Installation
+### Développement Local
 ```bash
-# Dépendances
+# Installation
 npm install
 
-# Configuration
-cp env.example .env
-# Éditez .env avec vos paramètres
+# Vérification des prérequis
+npm run check
 
-# Base de données
-npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:seed
+# Création de la base de données
+npm run db:create
 
-# Démarrage
-npm run start:dev
+# Configuration automatique + lancement
+npm run dev
 ```
+
+### Production Locale
+```bash
+# Configuration + build + lancement
+npm run prod
+```
+
+### Commandes principales
+```bash
+npm run dev        # Développement avec hot-reload
+npm run prod       # Production locale
+npm run db:setup   # Configuration complète de la DB
+npm run db:seed    # Chargement des données de test
+npm run db:reset   # Reset complet + rechargement
+```
+
+> 📖 **Guide complet** : Voir [LOCAL-DEVELOPMENT.md](./LOCAL-DEVELOPMENT.md) pour les détails
 
 **🌐 API :** `http://localhost:3000/api/v1`  
 **📖 Documentation :** `http://localhost:3000/api/v1/docs`
