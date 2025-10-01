@@ -15,7 +15,7 @@ export class AgentSchoolsController {
   constructor(private readonly schoolsService: SchoolsService) {}
 
   @Get('me')
-  @Roles(Role.ROLE_AGENT)
+  @Roles(Role.AGENT)
   @ApiOperation({ summary: "Récupérer les informations de l'école de l'agent connecté" })
   @ApiResponse({ status: 200, description: "Informations de l'école", type: SchoolResponseDto })
   @ApiResponse({ status: 403, description: 'Accès refusé' })

@@ -16,7 +16,7 @@ export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}
 
   @Get()
-  @Roles(Role.ROLE_AGENT)
+  @Roles(Role.AGENT)
   @ApiOperation({ summary: "Récupérer les alertes de l'établissement" })
   @ApiQuery({
     name: 'status',
@@ -52,7 +52,7 @@ export class AlertsController {
   }
 
   @Get('stats')
-  @Roles(Role.ROLE_AGENT)
+  @Roles(Role.AGENT)
   @ApiOperation({ summary: 'Récupérer les statistiques des alertes' })
   @ApiResponse({
     status: 200,
@@ -81,7 +81,7 @@ export class AlertsController {
   }
 
   @Get(':id')
-  @Roles(Role.ROLE_AGENT)
+  @Roles(Role.AGENT)
   @ApiOperation({ summary: 'Récupérer une alerte spécifique' })
   @ApiResponse({
     status: 200,
@@ -95,7 +95,7 @@ export class AlertsController {
   }
 
   @Patch(':id/status')
-  @Roles(Role.ROLE_AGENT)
+  @Roles(Role.AGENT)
   @ApiOperation({ summary: "Mettre à jour le statut d'une alerte" })
   @ApiResponse({
     status: 200,
@@ -113,7 +113,7 @@ export class AlertsController {
   }
 
   @Patch(':id/status-with-comment')
-  @Roles(Role.ROLE_AGENT)
+  @Roles(Role.AGENT)
   @ApiOperation({ summary: "Mettre à jour le statut d'une alerte avec un commentaire obligatoire" })
   @ApiResponse({
     status: 200,
@@ -138,7 +138,7 @@ export class AlertsController {
   }
 
   @Get(':id/comments')
-  @Roles(Role.ROLE_AGENT)
+  @Roles(Role.AGENT)
   @ApiOperation({ summary: "Récupérer les commentaires d'une alerte" })
   @ApiResponse({
     status: 200,

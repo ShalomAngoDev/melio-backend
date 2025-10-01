@@ -27,7 +27,7 @@ export class SchoolsController {
   constructor(private readonly schoolsService: SchoolsService) {}
 
   @Post()
-  @Roles(Role.ROLE_ADMIN_MELIO)
+  @Roles(Role.ADMIN_MELIO)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Créer un nouvel établissement' })
   @ApiResponse({
@@ -43,7 +43,7 @@ export class SchoolsController {
   }
 
   @Get()
-  @Roles(Role.ROLE_ADMIN_MELIO)
+  @Roles(Role.ADMIN_MELIO)
   @ApiOperation({ summary: 'Lister les établissements' })
   @ApiQuery({ name: 'search', required: false, description: 'Rechercher par nom ou ville' })
   @ApiQuery({ name: 'city', required: false, description: 'Filtrer par ville' })
@@ -56,7 +56,7 @@ export class SchoolsController {
   }
 
   @Get(':id')
-  @Roles(Role.ROLE_ADMIN_MELIO)
+  @Roles(Role.ADMIN_MELIO)
   @ApiOperation({ summary: 'Récupérer un établissement par son ID' })
   @ApiResponse({ status: 200, description: 'Établissement trouvé', type: SchoolResponseDto })
   @ApiResponse({ status: 404, description: 'Établissement non trouvé' })

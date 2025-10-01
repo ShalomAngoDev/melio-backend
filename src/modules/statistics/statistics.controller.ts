@@ -7,7 +7,7 @@ import { StatisticsService } from './statistics.service';
 
 @Controller('statistics')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ROLE_AGENT, Role.ROLE_ADMIN_SCHOOL, Role.ROLE_ADMIN_MELIO)
+@Roles(Role.AGENT, Role.ADMIN_SCHOOL, Role.ADMIN_MELIO)
 export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) {}
 

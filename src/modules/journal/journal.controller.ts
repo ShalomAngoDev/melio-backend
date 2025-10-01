@@ -27,7 +27,7 @@ export class JournalController {
   constructor(private readonly journalService: JournalService) {}
 
   @Post()
-  @Roles(Role.ROLE_STUDENT)
+  @Roles(Role.STUDENT)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Créer une entrée de journal' })
   @ApiResponse({
@@ -55,7 +55,7 @@ export class JournalController {
   }
 
   @Get()
-  @Roles(Role.ROLE_STUDENT)
+  @Roles(Role.STUDENT)
   @ApiOperation({ summary: "Récupérer les entrées de journal de l'élève" })
   @ApiQuery({
     name: 'limit',
@@ -96,7 +96,7 @@ export class JournalController {
   }
 
   @Get(':entryId')
-  @Roles(Role.ROLE_STUDENT)
+  @Roles(Role.STUDENT)
   @ApiOperation({ summary: 'Récupérer une entrée de journal spécifique' })
   @ApiResponse({
     status: 200,

@@ -25,7 +25,7 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post(':id/chat')
-  @Roles(Role.ROLE_STUDENT)
+  @Roles(Role.STUDENT)
   @ApiOperation({ summary: 'Envoyer un message à Mélio (élève uniquement)' })
   @ApiResponse({
     status: 201,
@@ -55,7 +55,7 @@ export class ChatController {
   }
 
   @Get(':id/chat')
-  @Roles(Role.ROLE_STUDENT)
+  @Roles(Role.STUDENT)
   @ApiOperation({ summary: "Récupérer les messages de chat de l'élève connecté" })
   @ApiQuery({
     name: 'limit',
@@ -92,7 +92,7 @@ export class ChatController {
   }
 
   @Get(':id/chat/stats')
-  @Roles(Role.ROLE_STUDENT)
+  @Roles(Role.STUDENT)
   @ApiOperation({ summary: "Récupérer les statistiques de chat de l'élève connecté" })
   @ApiResponse({
     status: 200,
@@ -120,7 +120,7 @@ export class ChatController {
 
   // Endpoints pour les agents (accès aux conversations des élèves)
   @Get(':id/chat/agent')
-  @Roles(Role.ROLE_AGENT)
+  @Roles(Role.AGENT)
   @ApiOperation({ summary: "Récupérer les messages de chat d'un élève (Agent uniquement)" })
   @ApiQuery({
     name: 'limit',
@@ -150,7 +150,7 @@ export class ChatController {
   }
 
   @Delete(':id/chat')
-  @Roles(Role.ROLE_STUDENT)
+  @Roles(Role.STUDENT)
   @ApiOperation({ summary: "Supprimer tous les messages de chat d'un élève" })
   @ApiResponse({ status: 200, description: 'Messages supprimés avec succès' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Élève requis' })
