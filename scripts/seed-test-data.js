@@ -7,12 +7,25 @@
 
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
+const { generateCleanEmail, generateCleanSchoolCode } = require('./utils');
 
 async function seedTestData() {
   const prisma = new PrismaClient();
   
   try {
     console.log('🌱 Début du seeding avec données de test...');
+    
+    // Nettoyer la base de données d'abord
+    console.log('🧹 Nettoyage de la base de données...');
+    await prisma.$executeRaw`DELETE FROM "chat_messages"`;
+    await prisma.$executeRaw`DELETE FROM "journal_entries"`;
+    await prisma.$executeRaw`DELETE FROM "alerts"`;
+    await prisma.$executeRaw`DELETE FROM "reports"`;
+    await prisma.$executeRaw`DELETE FROM "students"`;
+    await prisma.$executeRaw`DELETE FROM "agent_users"`;
+    await prisma.$executeRaw`DELETE FROM "schools"`;
+    await prisma.$executeRaw`DELETE FROM "admin_users"`;
+    console.log('✅ Base de données nettoyée');
     
     // Vérifier que les tables existent
     console.log('🔍 Vérification des tables...');
@@ -60,11 +73,11 @@ async function seedTestData() {
     ];
     
     const schoolNames = [
-      'École Primaire Victor Hugo', 'Collège Jules Verne', 'Lycée Marie Curie', 'École Maternelle Les Petits Loups',
-      'Collège Jean Moulin', 'Lycée Albert Einstein', 'École Primaire Les Lilas', 'Collège Pierre et Marie Curie',
-      'Lycée Louis Pasteur', 'École Maternelle Arc-en-Ciel', 'Collège Simone Veil', 'Lycée Claude Monet',
-      'École Primaire Les Roses', 'Collège Antoine de Saint-Exupéry', 'Lycée Frida Kahlo', 'École Maternelle Les Étoiles',
-      'Collège Léonard de Vinci', 'Lycée Nelson Mandela', 'École Primaire Les Coquelicots', 'Collège Rosa Parks'
+      'Ecole Primaire Victor Hugo', 'College Jules Verne', 'Lycee Marie Curie', 'Ecole Maternelle Les Petits Loups',
+      'College Jean Moulin', 'Lycee Albert Einstein', 'Ecole Primaire Les Lilas', 'College Pierre et Marie Curie',
+      'Lycee Louis Pasteur', 'Ecole Maternelle Arc-en-Ciel', 'College Simone Veil', 'Lycee Claude Monet',
+      'Ecole Primaire Les Roses', 'College Antoine de Saint-Exupery', 'Lycee Frida Kahlo', 'Ecole Maternelle Les Etoiles',
+      'College Leonard de Vinci', 'Lycee Nelson Mandela', 'Ecole Primaire Les Coquelicots', 'College Rosa Parks'
     ];
     
     const classes = [
@@ -86,19 +99,19 @@ async function seedTestData() {
     const schools = [];
     for (let i = 0; i < 10; i++) {
       const school = await prisma.school.upsert({
-        where: { code: `SCHOOL${String(i + 1).padStart(3, '0')}` },
+        where: { code: generateCleanSchoolCode(schoolNames[i], i + 1) },
         update: {},
         create: {
-          code: `SCHOOL${String(i + 1).padStart(3, '0')}`,
+          code: generateCleanSchoolCode(schoolNames[i], i + 1),
           name: schoolNames[i],
           address1: `${Math.floor(Math.random() * 99) + 1} rue de la Paix`,
           postalCode: `${Math.floor(Math.random() * 90000) + 10000}`,
           city: cities[Math.floor(Math.random() * cities.length)],
           country: 'FR',
           timezone: 'Europe/Paris',
-          level: i < 3 ? 'PRIMAIRE' : i < 7 ? 'COLLÈGE' : 'LYCÉE',
+          level: i < 3 ? 'PRIMAIRE' : i < 7 ? 'COLLEGE' : 'LYCEE',
           contactName: `Directeur ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
-          contactEmail: `contact@${schoolNames[i].toLowerCase().replace(/\s+/g, '')}.fr`,
+          contactEmail: `contact@ecole${i + 1}.fr`,
           contactPhone: `0${Math.floor(Math.random() * 900000000) + 100000000}`,
           idKey: `ID${Math.random().toString(36).substring(2, 15)}`,
           idKeyVer: 1,
@@ -119,11 +132,11 @@ async function seedTestData() {
       const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
       
       const agent = await prisma.agentUser.upsert({
-        where: { email: `agent${i + 1}@${schools[i].name.toLowerCase().replace(/\s+/g, '')}.fr` },
+        where: { email: generateCleanEmail(schools[i].name, 'agent', i + 1) },
         update: {},
         create: {
           schoolId: schools[i].id,
-          email: `agent${i + 1}@${schools[i].name.toLowerCase().replace(/\s+/g, '')}.fr`,
+          email: generateCleanEmail(schools[i].name, 'agent', i + 1),
           password: hashedPassword,
           role: 'ROLE_AGENT'
         }

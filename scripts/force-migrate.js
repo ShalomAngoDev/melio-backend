@@ -216,19 +216,34 @@ async function forceMigrate() {
               console.log('⚠️ Correction chat_messages terminée avec des avertissements');
             }
 
-            // Exécuter le seeding des données de test
-            console.log('\n🌱 Démarrage du seeding des données de test...');
-            const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
+            // Nettoyer la base de données d'abord
+            console.log('\n🧹 Nettoyage de la base de données...');
+            const cleanProcess = spawn('node', ['scripts/clean-database.js'], {
               stdio: 'inherit',
               cwd: process.cwd()
             });
-            
-            seedProcess.on('close', (seedCode) => {
-              if (seedCode === 0) {
-                console.log('✅ Seeding terminé avec succès !');
+
+            cleanProcess.on('close', (cleanCode) => {
+              if (cleanCode === 0) {
+                console.log('✅ Base de données nettoyée');
               } else {
-                console.log('⚠️ Seeding terminé avec des avertissements');
+                console.log('⚠️ Nettoyage terminé avec des avertissements');
               }
+
+              // Exécuter le seeding des données de test
+              console.log('\n🌱 Démarrage du seeding des données de test...');
+              const seedProcess = spawn('node', ['scripts/seed-test-data.js'], {
+                stdio: 'inherit',
+                cwd: process.cwd()
+              });
+            
+              seedProcess.on('close', (seedCode) => {
+                if (seedCode === 0) {
+                  console.log('✅ Seeding terminé avec succès !');
+                } else {
+                  console.log('⚠️ Seeding terminé avec des avertissements');
+                }
+              });
             });
           });
         });
