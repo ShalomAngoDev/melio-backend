@@ -10,4 +10,3 @@ import { DatabaseModule } from '../../config/database.module';
   exports: [TagsService],
 })
 export class TagsModule {}
-

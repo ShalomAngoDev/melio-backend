@@ -72,11 +72,17 @@ model Student {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  // V2: Gamification
+  currentStreak  Int      @default(0)
+  bestStreak     Int      @default(0)
+  lastEntryDate  DateTime?
+
   journalEntries JournalEntry[]
   alerts         Alert[]
   chatbotMessages ChatbotMessage[]
   chatMessages   ChatMessage[]
   reports        Report[]
+  achievements   StudentAchievement[]
 
   @@index([schoolId, className])
   @@unique([schoolId, uniqueId]) // unicité au sein de l'établissement
@@ -229,7 +235,6 @@ model Report {
   updatedAt DateTime @updatedAt
 
   @@index([schoolId, status])
-  @@index([schoolId, status])
   @@index([studentId, createdAt])
   @@map("reports")
 }
@@ -259,4 +264,34 @@ model JournalEntryTag {
   @@index([journalEntryId])
   @@index([tagId])
   @@map("journal_entry_tags")
+}
+
+// ===== V2: GAMIFICATION =====
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique  // first_entry, week_streak, etc.
+  name        String
+  description String
+  icon        String
+  category    String   // WRITING | STREAK | ENGAGEMENT | SPECIAL
+  threshold   Int?     // Nombre requis pour débloquer (ex: 7 pour week_streak)
+  createdAt   DateTime @default(now())
+
+  students    StudentAchievement[]
+
+  @@map("achievements")
+}
+
+model StudentAchievement {
+  id            String   @id @default(cuid())
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime @default(now())
+
+  @@unique([studentId, achievementId])
+  @@index([studentId])
+  @@map("student_achievements")
 }

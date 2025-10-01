@@ -31,6 +31,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { TagsModule } from './modules/tags/tags.module';
+import { AchievementsModule } from './modules/achievements/achievements.module';
 
 @Module({
   imports: [
@@ -102,6 +103,7 @@ import { TagsModule } from './modules/tags/tags.module';
     AiModule,
     AdminModule,
     TagsModule, // V2: Système de tags
+    AchievementsModule, // V2: Gamification (badges et streaks)
   ],
 })
 export class AppModule {}

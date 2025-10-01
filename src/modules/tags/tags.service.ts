@@ -27,10 +27,7 @@ export class TagsService {
    */
   async findAll(): Promise<TagDto[]> {
     const tags = await this.prisma.tag.findMany({
-      orderBy: [
-        { category: 'asc' },
-        { name: 'asc' },
-      ],
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
     });
 
     return tags;
@@ -130,9 +127,7 @@ export class TagsService {
       });
     }
 
-    this.logger.log(
-      `Tags mis à jour pour l'entrée ${entryId}: ${tagIds.length} tags`,
-    );
+    this.logger.log(`Tags mis à jour pour l'entrée ${entryId}: ${tagIds.length} tags`);
   }
 
   /**
@@ -152,10 +147,7 @@ export class TagsService {
   /**
    * Rechercher des entrées par tags
    */
-  async findEntriesByTags(
-    studentId: string,
-    tagIds: string[],
-  ): Promise<string[]> {
+  async findEntriesByTags(studentId: string, tagIds: string[]): Promise<string[]> {
     const entries = await this.prisma.journalEntryTag.findMany({
       where: {
         tagId: { in: tagIds },
@@ -206,4 +198,3 @@ export class TagsService {
     return tagsWithCounts.sort((a, b) => b.count - a.count);
   }
 }
-

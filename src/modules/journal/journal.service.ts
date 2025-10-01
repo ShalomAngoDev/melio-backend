@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import { CreateJournalEntryDto } from './dto/create-journal-entry.dto';
 import { JournalEntryResponseDto } from './dto/journal-entry-response.dto';
 import { AIAnalysisService } from './ai-analysis.service';
 import { ChatService } from '../chat/chat.service';
+import { AchievementsService } from '../achievements/achievements.service';
 
 @Injectable()
 export class JournalService {
@@ -13,6 +14,8 @@ export class JournalService {
     private readonly prisma: PrismaService,
     private readonly aiAnalysis: AIAnalysisService,
     private readonly chatService: ChatService,
+    @Inject(forwardRef(() => AchievementsService))
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   /**
@@ -89,6 +92,17 @@ export class JournalService {
     this.logger.log(
       `Empathetic message scheduled for student ${studentId} with risk level: ${aiResult.riskLevel}`,
     );
+
+    // V2: Gamification - Mettre à jour le streak et vérifier les badges
+    try {
+      await this.achievementsService.updateStreak(studentId);
+      await this.achievementsService.checkWritingAchievements(studentId);
+      await this.achievementsService.checkRainbowAchievement(studentId);
+      this.logger.log(`Gamification updated for student ${studentId}`);
+    } catch (error) {
+      this.logger.error(`Erreur gamification pour ${studentId}:`, error);
+      // Ne pas faire échouer la création si la gamification échoue
+    }
 
     return this.mapToResponseDto(updatedEntry);
   }

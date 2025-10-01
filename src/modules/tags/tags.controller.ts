@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { TagsService, TagDto, CreateTagDto } from './tags.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -58,10 +48,7 @@ export class TagsController {
   @Roles(Role.ADMIN_MELIO, Role.AGENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Mettre à jour un tag (admin/agent)' })
-  async update(
-    @Param('id') id: string,
-    @Body() data: Partial<CreateTagDto>,
-  ): Promise<TagDto> {
+  async update(@Param('id') id: string, @Body() data: Partial<CreateTagDto>): Promise<TagDto> {
     return this.tagsService.update(id, data);
   }
 
@@ -84,4 +71,3 @@ export class TagsController {
     return this.tagsService.getStudentTagStats(studentId);
   }
 }
-
