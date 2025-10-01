@@ -8,7 +8,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 // Config
 import { DatabaseModule } from './config/database.module';
 import { RedisModule } from './config/redis.module';
-import { MinioModule } from './config/minio.module';
 
 // Common
 import { LoggerModule } from './common/logger/logger.module';
@@ -81,7 +80,6 @@ import { UploadModule } from './modules/upload/upload.module';
     // Config modules
     DatabaseModule,
     RedisModule, // Re-enabled - Redis service exists on Railway
-    MinioModule, // V2: Upload de photos
 
     // Common modules
     LoggerModule,
