@@ -34,9 +34,9 @@ export class ChatController {
       type: 'object',
       properties: {
         userMessage: { $ref: '#/components/schemas/ChatMessageDto' },
-        botResponse: { $ref: '#/components/schemas/ChatMessageDto' }
-      }
-    }
+        botResponse: { $ref: '#/components/schemas/ChatMessageDto' },
+      },
+    },
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Élève requis' })
   @ApiResponse({ status: 404, description: 'Élève non trouvé' })
@@ -56,9 +56,19 @@ export class ChatController {
 
   @Get(':id/chat')
   @Roles(Role.ROLE_STUDENT)
-  @ApiOperation({ summary: 'Récupérer les messages de chat de l\'élève connecté' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Nombre de messages à récupérer (défaut: 50)' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Décalage pour la pagination' })
+  @ApiOperation({ summary: "Récupérer les messages de chat de l'élève connecté" })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Nombre de messages à récupérer (défaut: 50)',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Décalage pour la pagination',
+  })
   @ApiResponse({
     status: 200,
     description: 'Liste des messages de chat',
@@ -78,16 +88,12 @@ export class ChatController {
       throw new Error('Vous ne pouvez récupérer que vos propres messages');
     }
 
-    return this.chatService.getStudentMessages(
-      studentId,
-      limit || 50,
-      offset || 0,
-    );
+    return this.chatService.getStudentMessages(studentId, limit || 50, offset || 0);
   }
 
   @Get(':id/chat/stats')
   @Roles(Role.ROLE_STUDENT)
-  @ApiOperation({ summary: 'Récupérer les statistiques de chat de l\'élève connecté' })
+  @ApiOperation({ summary: "Récupérer les statistiques de chat de l'élève connecté" })
   @ApiResponse({
     status: 200,
     description: 'Statistiques des messages de chat',
@@ -97,16 +103,13 @@ export class ChatController {
         totalMessages: { type: 'number' },
         userMessages: { type: 'number' },
         botMessages: { type: 'number' },
-        lastActivity: { type: 'string', format: 'date-time' }
-      }
-    }
+        lastActivity: { type: 'string', format: 'date-time' },
+      },
+    },
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Élève requis' })
   @ApiResponse({ status: 404, description: 'Élève non trouvé' })
-  async getStudentChatStats(
-    @Param('id') studentId: string,
-    @Request() req: any,
-  ): Promise<any> {
+  async getStudentChatStats(@Param('id') studentId: string, @Request() req: any): Promise<any> {
     // Vérifier que l'élève ne peut récupérer que ses propres statistiques
     if (req.user.sub !== studentId) {
       throw new Error('Vous ne pouvez récupérer que vos propres statistiques');
@@ -118,12 +121,22 @@ export class ChatController {
   // Endpoints pour les agents (accès aux conversations des élèves)
   @Get(':id/chat/agent')
   @Roles(Role.ROLE_AGENT)
-  @ApiOperation({ summary: 'Récupérer les messages de chat d\'un élève (Agent uniquement)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Nombre de messages à récupérer (défaut: 50)' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Décalage pour la pagination' })
+  @ApiOperation({ summary: "Récupérer les messages de chat d'un élève (Agent uniquement)" })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Nombre de messages à récupérer (défaut: 50)',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Décalage pour la pagination',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Liste des messages de chat de l\'élève',
+    description: "Liste des messages de chat de l'élève",
     type: [ChatMessageDto],
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
@@ -133,16 +146,12 @@ export class ChatController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ): Promise<ChatMessageDto[]> {
-    return this.chatService.getStudentMessagesForAgent(
-      studentId,
-      limit || 50,
-      offset || 0,
-    );
+    return this.chatService.getStudentMessagesForAgent(studentId, limit || 50, offset || 0);
   }
 
   @Delete(':id/chat')
   @Roles(Role.ROLE_STUDENT)
-  @ApiOperation({ summary: 'Supprimer tous les messages de chat d\'un élève' })
+  @ApiOperation({ summary: "Supprimer tous les messages de chat d'un élève" })
   @ApiResponse({ status: 200, description: 'Messages supprimés avec succès' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Élève requis' })
   @ApiResponse({ status: 404, description: 'Élève non trouvé' })

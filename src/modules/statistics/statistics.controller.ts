@@ -14,7 +14,7 @@ export class StatisticsController {
   @Get('general')
   async getGeneralStats(
     @Query('schoolId') schoolId: string,
-    @Query('period') period?: 'week' | 'month' | 'year'
+    @Query('period') period?: 'week' | 'month' | 'year',
   ) {
     return this.statisticsService.getGeneralStats(schoolId, period);
   }
@@ -22,7 +22,7 @@ export class StatisticsController {
   @Get('temporal')
   async getTemporalStats(
     @Query('schoolId') schoolId: string,
-    @Query('period') period: 'week' | 'month' | 'year' = 'month'
+    @Query('period') period: 'week' | 'month' | 'year' = 'month',
   ) {
     return this.statisticsService.getTemporalStats(schoolId, period);
   }

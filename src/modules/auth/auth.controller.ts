@@ -35,7 +35,7 @@ export class AuthController {
   // ===== AGENT AUTHENTICATION =====
   @Post('agent/login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Connexion agent d\'établissement' })
+  @ApiOperation({ summary: "Connexion agent d'établissement" })
   @ApiResponse({ status: 200, description: 'Connexion réussie', type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Code établissement, email ou mot de passe invalide' })
   async agentLogin(@Body() agentLoginDto: AgentLoginDto): Promise<AuthResponseDto> {
@@ -79,7 +79,7 @@ export class AuthController {
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Profil de l\'utilisateur connecté' })
+  @ApiOperation({ summary: "Profil de l'utilisateur connecté" })
   @ApiResponse({ status: 200, description: 'Profil utilisateur' })
   @ApiResponse({ status: 401, description: 'Token invalide' })
   async getProfile(@Request() req: any): Promise<any> {

@@ -106,3 +106,5 @@ if (allGood) {
   console.log('\n📖 Consultez LOCAL-DEVELOPMENT.md pour les instructions d\'installation.');
   process.exit(1);
 }
+
+

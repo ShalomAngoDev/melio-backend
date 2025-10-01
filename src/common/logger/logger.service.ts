@@ -19,10 +19,13 @@ export class LoggerService implements NestLoggerService {
     };
 
     if (logFormat === 'pretty' && process.env.NODE_ENV === 'development') {
-      this.logger = pino(options, pino.destination({
-        dest: 1, // stdout
-        sync: false,
-      }));
+      this.logger = pino(
+        options,
+        pino.destination({
+          dest: 1, // stdout
+          sync: false,
+        }),
+      );
     } else {
       this.logger = pino(options);
     }

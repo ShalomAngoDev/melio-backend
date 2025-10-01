@@ -30,7 +30,11 @@ export class SchoolsController {
   @Roles(Role.ROLE_ADMIN_MELIO)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Créer un nouvel établissement' })
-  @ApiResponse({ status: 201, description: 'Établissement créé avec succès', type: SchoolResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Établissement créé avec succès',
+    type: SchoolResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'Données invalides' })
   @ApiResponse({ status: 409, description: 'Code UAI déjà utilisé' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })

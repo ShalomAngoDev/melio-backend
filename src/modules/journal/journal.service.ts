@@ -73,7 +73,9 @@ export class JournalService {
     // Si le risque est moyen, élevé ou critique, créer une alerte
     if (['MOYEN', 'ELEVE', 'CRITIQUE'].includes(aiResult.riskLevel)) {
       await this.createAlert(studentId, schoolId, journalEntry.id, aiResult);
-      this.logger.log(`Alert created for student ${studentId} with risk level: ${aiResult.riskLevel}`);
+      this.logger.log(
+        `Alert created for student ${studentId} with risk level: ${aiResult.riskLevel}`,
+      );
     }
 
     // Créer un message empathique du chatbot pour tous les niveaux de risque
@@ -81,10 +83,12 @@ export class JournalService {
       studentId,
       aiResult.riskLevel as 'FAIBLE' | 'MOYEN' | 'ELEVE' | 'CRITIQUE',
       aiResult.dominantCategory,
-      journalEntry.id
+      journalEntry.id,
     );
 
-    this.logger.log(`Empathetic message scheduled for student ${studentId} with risk level: ${aiResult.riskLevel}`);
+    this.logger.log(
+      `Empathetic message scheduled for student ${studentId} with risk level: ${aiResult.riskLevel}`,
+    );
 
     return this.mapToResponseDto(updatedEntry);
   }
@@ -117,7 +121,7 @@ export class JournalService {
       skip: offset,
     });
 
-    return entries.map(entry => this.mapToResponseDto(entry));
+    return entries.map((entry) => this.mapToResponseDto(entry));
   }
 
   /**
@@ -209,7 +213,7 @@ export class JournalService {
 
     // Grouper par catégorie et compter les jours distincts
     const categoryDays: Record<string, Set<string>> = {};
-    
+
     for (const entry of recentEntries) {
       if (entry.aiRiskLevel) {
         if (!categoryDays[entry.aiRiskLevel]) {

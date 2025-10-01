@@ -34,3 +34,5 @@ try {
   console.log('3. Créez manuellement: createdb -U postgres melio_local');
   process.exit(1);
 }
+
+

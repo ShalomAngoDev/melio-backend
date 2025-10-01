@@ -3,7 +3,7 @@ import { IsEmail, IsString, MinLength, IsNotEmpty } from 'class-validator';
 
 export class AgentLoginDto {
   @ApiProperty({
-    description: 'Code de l\'établissement',
+    description: "Code de l'établissement",
     example: 'COLLEGE2024',
     minLength: 8,
     maxLength: 20,
@@ -13,7 +13,7 @@ export class AgentLoginDto {
   schoolCode: string;
 
   @ApiProperty({
-    description: 'Email de l\'agent',
+    description: "Email de l'agent",
     example: 'agent@college-victor-hugo.fr',
   })
   @IsEmail({}, { message: 'Email invalide' })

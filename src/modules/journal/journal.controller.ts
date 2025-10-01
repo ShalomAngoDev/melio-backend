@@ -30,10 +30,10 @@ export class JournalController {
   @Roles(Role.ROLE_STUDENT)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Créer une entrée de journal' })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'Entrée de journal créée avec succès', 
-    type: JournalEntryResponseDto 
+  @ApiResponse({
+    status: 201,
+    description: 'Entrée de journal créée avec succès',
+    type: JournalEntryResponseDto,
   })
   @ApiResponse({ status: 403, description: 'Accès refusé' })
   @ApiResponse({ status: 404, description: 'Élève non trouvé' })
@@ -56,13 +56,23 @@ export class JournalController {
 
   @Get()
   @Roles(Role.ROLE_STUDENT)
-  @ApiOperation({ summary: 'Récupérer les entrées de journal de l\'élève' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Nombre d\'entrées à récupérer (défaut: 10)' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Décalage pour la pagination (défaut: 0)' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Liste des entrées de journal', 
-    type: [JournalEntryResponseDto] 
+  @ApiOperation({ summary: "Récupérer les entrées de journal de l'élève" })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: "Nombre d'entrées à récupérer (défaut: 10)",
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Décalage pour la pagination (défaut: 0)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des entrées de journal',
+    type: [JournalEntryResponseDto],
   })
   @ApiResponse({ status: 403, description: 'Accès refusé' })
   @ApiResponse({ status: 404, description: 'Élève non trouvé' })
@@ -88,10 +98,10 @@ export class JournalController {
   @Get(':entryId')
   @Roles(Role.ROLE_STUDENT)
   @ApiOperation({ summary: 'Récupérer une entrée de journal spécifique' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Entrée de journal trouvée', 
-    type: JournalEntryResponseDto 
+  @ApiResponse({
+    status: 200,
+    description: 'Entrée de journal trouvée',
+    type: JournalEntryResponseDto,
   })
   @ApiResponse({ status: 403, description: 'Accès refusé' })
   @ApiResponse({ status: 404, description: 'Entrée de journal non trouvée' })
@@ -105,10 +115,6 @@ export class JournalController {
       throw new Error('Accès non autorisé à ce journal');
     }
 
-    return this.journalService.getJournalEntry(
-      entryId,
-      studentId,
-      req.user.schoolId,
-    );
+    return this.journalService.getJournalEntry(entryId, studentId, req.user.schoolId);
   }
 }

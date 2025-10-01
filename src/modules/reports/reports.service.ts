@@ -59,7 +59,7 @@ export class ReportsService {
       },
     });
 
-    return reports.map(report => this.mapToResponseDto(report));
+    return reports.map((report) => this.mapToResponseDto(report));
   }
 
   async getReportById(id: string, schoolId: string): Promise<ReportResponseDto> {
@@ -77,7 +77,11 @@ export class ReportsService {
     return this.mapToResponseDto(report);
   }
 
-  async updateReport(id: string, schoolId: string, updateReportDto: UpdateReportDto): Promise<ReportResponseDto> {
+  async updateReport(
+    id: string,
+    schoolId: string,
+    updateReportDto: UpdateReportDto,
+  ): Promise<ReportResponseDto> {
     // Vérifier que le signalement existe et appartient à cette école
     const existingReport = await this.prisma.report.findFirst({
       where: {

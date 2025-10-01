@@ -30,6 +30,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { AuditModule } from './modules/audit/audit.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { AdminModule } from './modules/admin/admin.module';
     AuditModule,
     AiModule,
     AdminModule,
+    TagsModule, // V2: Système de tags
   ],
 })
 export class AppModule {}

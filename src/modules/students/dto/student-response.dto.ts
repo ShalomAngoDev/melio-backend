@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class StudentResponseDto {
-  @ApiProperty({ description: 'ID unique de l\'élève' })
+  @ApiProperty({ description: "ID unique de l'élève" })
   id: string;
 
-  @ApiProperty({ description: 'ID de l\'établissement' })
+  @ApiProperty({ description: "ID de l'établissement" })
   schoolId: string;
 
   @ApiProperty({ description: 'Prénom' })
@@ -16,7 +16,7 @@ export class StudentResponseDto {
   @ApiProperty({ description: 'Date de naissance (format ISO)' })
   birthdate: string;
 
-  @ApiProperty({ description: 'Sexe de l\'élève', enum: ['M', 'F'] })
+  @ApiProperty({ description: "Sexe de l'élève", enum: ['M', 'F'] })
   sex: string;
 
   @ApiProperty({ description: 'Classe' })

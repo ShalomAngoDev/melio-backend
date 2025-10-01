@@ -1,9 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsEmail, Matches, Length, MaxLength, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEmail,
+  Matches,
+  Length,
+  MaxLength,
+  IsIn,
+} from 'class-validator';
 
 export class CreateSchoolDto {
   @ApiProperty({
-    description: 'Code unique de l\'établissement (utilisé pour les connexions)',
+    description: "Code unique de l'établissement (utilisé pour les connexions)",
     example: 'MELIO001',
     minLength: 6,
     maxLength: 20,
@@ -11,11 +20,13 @@ export class CreateSchoolDto {
   @IsString()
   @IsNotEmpty()
   @Length(6, 20, { message: 'Le code école doit contenir entre 6 et 20 caractères' })
-  @Matches(/^[A-Z0-9]+$/, { message: 'Le code école ne peut contenir que des lettres majuscules et des chiffres' })
+  @Matches(/^[A-Z0-9]+$/, {
+    message: 'Le code école ne peut contenir que des lettres majuscules et des chiffres',
+  })
   code: string;
 
   @ApiProperty({
-    description: 'Nom officiel de l\'établissement',
+    description: "Nom officiel de l'établissement",
     example: 'Collège Jean Moulin',
     minLength: 2,
     maxLength: 120,
@@ -32,7 +43,7 @@ export class CreateSchoolDto {
   })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(200, { message: 'L\'adresse ne peut dépasser 200 caractères' })
+  @MaxLength(200, { message: "L'adresse ne peut dépasser 200 caractères" })
   address1: string;
 
   @ApiProperty({
@@ -43,7 +54,7 @@ export class CreateSchoolDto {
   })
   @IsOptional()
   @IsString()
-  @MaxLength(200, { message: 'L\'adresse complémentaire ne peut dépasser 200 caractères' })
+  @MaxLength(200, { message: "L'adresse complémentaire ne peut dépasser 200 caractères" })
   address2?: string;
 
   @ApiProperty({
@@ -88,7 +99,7 @@ export class CreateSchoolDto {
   timezone?: string;
 
   @ApiProperty({
-    description: 'Niveau d\'enseignement',
+    description: "Niveau d'enseignement",
     example: 'COLLEGE',
     enum: ['PRIMARY', 'COLLEGE', 'LYCEE', 'SUP', 'MIXTE'],
     required: false,
@@ -110,7 +121,9 @@ export class CreateSchoolDto {
   @IsOptional()
   @IsString()
   @Length(8, 10, { message: 'Le code UAI doit contenir entre 8 et 10 caractères' })
-  @Matches(/^[A-Z0-9]+$/, { message: 'Le code UAI ne peut contenir que des lettres majuscules et des chiffres' })
+  @Matches(/^[A-Z0-9]+$/, {
+    message: 'Le code UAI ne peut contenir que des lettres majuscules et des chiffres',
+  })
   uaiCode?: string;
 
   @ApiProperty({
@@ -130,7 +143,7 @@ export class CreateSchoolDto {
     required: false,
   })
   @IsOptional()
-  @IsEmail({}, { message: 'Format d\'email invalide' })
+  @IsEmail({}, { message: "Format d'email invalide" })
   contactEmail?: string;
 
   @ApiProperty({
@@ -147,16 +160,14 @@ export class CreateSchoolDto {
   contactPhone?: string;
 
   @ApiProperty({
-    description: 'Paramètres de l\'établissement (JSON)',
+    description: "Paramètres de l'établissement (JSON)",
     example: {
       dataRetentionMonths: 18,
       aiThresholds: { LOW: 40, MEDIUM: 65, HIGH: 85 },
-      notify: { critical: 'realtime', others: 'daily' }
+      notify: { critical: 'realtime', others: 'daily' },
     },
     required: false,
   })
   @IsOptional()
   settings?: any;
 }
-
-

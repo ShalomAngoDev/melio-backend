@@ -9,4 +9,3 @@ export class ReportResponseDto {
   createdAt: Date;
   updatedAt: Date;
 }
-

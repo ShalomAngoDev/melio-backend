@@ -19,7 +19,7 @@ export class AlertsService {
     offset: number = 0,
   ): Promise<AlertResponseDto[]> {
     const where: any = { schoolId };
-    
+
     if (status) {
       where.status = status;
     }
@@ -44,16 +44,13 @@ export class AlertsService {
       skip: offset,
     });
 
-    return alerts.map(alert => this.mapToResponseDto(alert));
+    return alerts.map((alert) => this.mapToResponseDto(alert));
   }
 
   /**
    * Récupère une alerte spécifique
    */
-  async getAlert(
-    alertId: string,
-    schoolId: string,
-  ): Promise<AlertResponseDto> {
+  async getAlert(alertId: string, schoolId: string): Promise<AlertResponseDto> {
     const alert = await this.prisma.alert.findFirst({
       where: {
         id: alertId,
@@ -149,7 +146,7 @@ export class AlertsService {
       CRITIQUE: 0,
     };
 
-    parNiveau.forEach(item => {
+    parNiveau.forEach((item) => {
       if (item.riskLevel in parNiveauResult) {
         parNiveauResult[item.riskLevel] = item._count.riskLevel;
       }
@@ -232,7 +229,9 @@ export class AlertsService {
       },
     });
 
-    this.logger.log(`Alert ${alertId} status updated from ${oldStatus} to ${createCommentDto.newStatus} by agent ${agentName}`);
+    this.logger.log(
+      `Alert ${alertId} status updated from ${oldStatus} to ${createCommentDto.newStatus} by agent ${agentName}`,
+    );
 
     return this.mapToResponseDto(updatedAlert);
   }
@@ -254,7 +253,7 @@ export class AlertsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return comments.map(comment => ({
+    return comments.map((comment) => ({
       id: comment.id,
       alertId: comment.alertId,
       agentId: comment.agentId,

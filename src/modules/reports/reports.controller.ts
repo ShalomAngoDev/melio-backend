@@ -67,10 +67,7 @@ export class ReportsController {
   @Get('stats')
   @UseGuards(RolesGuard)
   @Roles(Role.ROLE_AGENT, Role.ROLE_ADMIN_SCHOOL)
-  async getReportStats(
-    @Request() req: any,
-    @Query('schoolId') schoolId?: string,
-  ) {
+  async getReportStats(@Request() req: any, @Query('schoolId') schoolId?: string) {
     // Pour les agents, utiliser leur schoolId
     if (req.user.role === 'ROLE_AGENT') {
       schoolId = req.user.schoolId;

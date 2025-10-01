@@ -12,7 +12,7 @@ export class HealthService {
   async checkReadiness() {
     try {
       const services: Record<string, string> = {};
-      
+
       // Check database connection (required)
       try {
         await this.prisma.$queryRaw`SELECT 1`;
@@ -21,7 +21,7 @@ export class HealthService {
         services.database = 'disconnected';
         throw new Error(`Database connection failed: ${error.message}`);
       }
-      
+
       // Check Redis connection
       try {
         await this.redis.ping();
@@ -30,7 +30,7 @@ export class HealthService {
         services.redis = 'disconnected';
         // Don't fail readiness check if Redis is down
       }
-      
+
       return {
         status: 'ready',
         timestamp: new Date().toISOString(),

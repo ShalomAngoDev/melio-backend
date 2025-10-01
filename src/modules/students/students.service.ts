@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import { StudentIdGeneratorService } from './student-id-generator.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -17,8 +23,21 @@ export class StudentsService {
   /**
    * Crée un nouvel élève
    */
-  async createStudent(createStudentDto: CreateStudentDto, agentSchoolId: string): Promise<StudentResponseDto> {
-    const { schoolCode, firstName, lastName, birthdate, sex, className, parentName, parentPhone, parentEmail } = createStudentDto;
+  async createStudent(
+    createStudentDto: CreateStudentDto,
+    agentSchoolId: string,
+  ): Promise<StudentResponseDto> {
+    const {
+      schoolCode,
+      firstName,
+      lastName,
+      birthdate,
+      sex,
+      className,
+      parentName,
+      parentPhone,
+      parentEmail,
+    } = createStudentDto;
 
     // 1. Vérifier que l'établissement existe et récupérer la clé secrète
     const school = await this.prisma.school.findUnique({
@@ -38,7 +57,7 @@ export class StudentsService {
     const birthDate = new Date(birthdate);
     const age = this.calculateAge(birthDate);
     if (age >= 21) {
-      throw new BadRequestException('L\'élève doit avoir moins de 21 ans');
+      throw new BadRequestException("L'élève doit avoir moins de 21 ans");
     }
 
     // 4. Normaliser les données
@@ -54,10 +73,12 @@ export class StudentsService {
     });
 
     // 5. Récupérer les IDs existants pour éviter les collisions
-    const existingIds = await this.prisma.student.findMany({
-      where: { schoolId: school.id },
-      select: { uniqueId: true },
-    }).then(students => students.map(s => s.uniqueId));
+    const existingIds = await this.prisma.student
+      .findMany({
+        where: { schoolId: school.id },
+        select: { uniqueId: true },
+      })
+      .then((students) => students.map((s) => s.uniqueId));
 
     // 6. Générer un identifiant unique
     const uniqueId = this.idGenerator.generateUniqueStudentId(
@@ -106,22 +127,15 @@ export class StudentsService {
     // Recherche par nom ou prénom
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
-      where.OR = [
-        { firstName: { contains: searchTerm } },
-        { lastName: { contains: searchTerm } },
-      ];
+      where.OR = [{ firstName: { contains: searchTerm } }, { lastName: { contains: searchTerm } }];
     }
 
     const students = await this.prisma.student.findMany({
       where,
-      orderBy: [
-        { className: 'asc' },
-        { lastName: 'asc' },
-        { firstName: 'asc' },
-      ],
+      orderBy: [{ className: 'asc' }, { lastName: 'asc' }, { firstName: 'asc' }],
     });
 
-    return students.map(student => this.mapToResponseDto(student));
+    return students.map((student) => this.mapToResponseDto(student));
   }
 
   /**
@@ -149,11 +163,11 @@ export class StudentsService {
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     return age;
   }
 

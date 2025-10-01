@@ -9,7 +9,7 @@ import { execSync } from 'child_process';
 
 async function bootstrap() {
   console.log('🚀 Starting Melio Backend...');
-  
+
   // Exécuter les migrations Prisma
   try {
     console.log('🔄 Running Prisma migrations...');
@@ -18,7 +18,7 @@ async function bootstrap() {
   } catch (error) {
     console.error('❌ Prisma migration failed:', error.message);
   }
-  
+
   // Créer le compte admin si nécessaire (production et développement)
   try {
     console.log('🔄 Ensuring admin account exists...');
@@ -28,11 +28,11 @@ async function bootstrap() {
     console.error('⚠️ Admin account creation warning:', adminError.message);
     // Ne pas bloquer le démarrage si l'admin existe déjà
   }
-  
+
   // NOTE: Le script force-migrate.js ne doit être exécuté QU'UNE SEULE FOIS lors de la configuration initiale
   // Il lance des scripts de seeding qui peuvent créer une boucle infinie
   // Pour l'exécuter manuellement : node scripts/force-migrate.js
-  
+
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
@@ -85,12 +85,12 @@ async function bootstrap() {
     .addTag('Students', 'Gestion des élèves')
     .addTag('Journal', 'Journal intime des élèves')
     .addTag('Chat', 'Chatbot empathique')
-    .addTag('Alerts', 'Système d\'alertes IA')
+    .addTag('Alerts', "Système d'alertes IA")
     .addTag('Reports', 'Signalements')
     .addTag('Analytics', 'Statistiques et rapports')
     .addTag('Resources', 'Ressources pédagogiques')
     .addTag('Notifications', 'Système de notifications')
-    .addTag('Audit', 'Journal d\'audit')
+    .addTag('Audit', "Journal d'audit")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -102,7 +102,7 @@ async function bootstrap() {
 
   const port = configService.get('PORT', 3000);
   const host = configService.get('HOST', '0.0.0.0'); // Écouter sur toutes les interfaces
-  
+
   await app.listen(port, host);
 
   logger.log(`🚀 Application is running on: http://${host}:${port}`);

@@ -10,11 +10,11 @@ export class RedisService extends Redis implements OnModuleDestroy {
       url: options.url ? options.url.replace(/:[^:@]+@/, ':***@') : 'no url',
       host: options.host || 'no host',
       port: options.port || 'no port',
-      hasPassword: !!options.password
+      hasPassword: !!options.password,
     });
-    
+
     super(options);
-    
+
     this.on('connect', () => {
       this.logger.log('Redis connected successfully');
     });
@@ -51,6 +51,6 @@ export class RedisService extends Redis implements OnModuleDestroy {
     pipeline.incr(key);
     pipeline.expire(key, ttlSeconds);
     const results = await pipeline.exec();
-    return results?.[0]?.[1] as number || 0;
+    return (results?.[0]?.[1] as number) || 0;
   }
 }

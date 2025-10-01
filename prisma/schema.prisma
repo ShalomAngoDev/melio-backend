@@ -118,12 +118,19 @@ model JournalEntry {
   contentText String
   createdAt   DateTime @default(now())
 
+  // V2: Personnalisation
+  color       String?  @default("pink")
+  coverImage  String?
+
   // Analyse IA
   aiRiskScore Int?     // 0–100
   aiRiskLevel String?  // FAIBLE | MOYEN | ELEVE | CRITIQUE
   aiSummary   String?  // résumé généré
   aiAdvice    String?  // conseil stratégique
   processedAt DateTime?
+
+  // Relations V2
+  tags        JournalEntryTag[]
 
   @@index([studentId, createdAt])
   @@map("journal_entries")
@@ -222,6 +229,34 @@ model Report {
   updatedAt DateTime @updatedAt
 
   @@index([schoolId, status])
+  @@index([schoolId, status])
   @@index([studentId, createdAt])
   @@map("reports")
+}
+
+// ===== V2: SYSTÈME DE TAGS =====
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  icon      String?
+  color     String   @default("#ec4899")
+  category  String?
+  createdAt DateTime @default(now())
+
+  entries   JournalEntryTag[]
+
+  @@map("tags")
+}
+
+model JournalEntryTag {
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  tagId          String
+  tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([journalEntryId, tagId])
+  @@index([journalEntryId])
+  @@index([tagId])
+  @@map("journal_entry_tags")
 }

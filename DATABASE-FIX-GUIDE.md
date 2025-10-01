@@ -133,3 +133,5 @@ PostgreSQL Database:
 5. **Frontend peut se connecter**
 
 Le problème de tables manquantes devrait maintenant être résolu ! 🎉
+
+

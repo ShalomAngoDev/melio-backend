@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Param,
-  Body,
-  Query,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -26,14 +17,29 @@ export class AlertsController {
 
   @Get()
   @Roles(Role.ROLE_AGENT)
-  @ApiOperation({ summary: 'Récupérer les alertes de l\'établissement' })
-  @ApiQuery({ name: 'status', required: false, enum: ['NOUVELLE', 'EN_COURS', 'TRAITEE'], description: 'Filtrer par statut' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Nombre d\'alertes à récupérer (défaut: 50)' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Décalage pour la pagination (défaut: 0)' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Liste des alertes', 
-    type: [AlertResponseDto] 
+  @ApiOperation({ summary: "Récupérer les alertes de l'établissement" })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['NOUVELLE', 'EN_COURS', 'TRAITEE'],
+    description: 'Filtrer par statut',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: "Nombre d'alertes à récupérer (défaut: 50)",
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Décalage pour la pagination (défaut: 0)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des alertes',
+    type: [AlertResponseDto],
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
   async getSchoolAlerts(
@@ -42,19 +48,14 @@ export class AlertsController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ): Promise<AlertResponseDto[]> {
-    return this.alertsService.getSchoolAlerts(
-      req.user.schoolId,
-      status,
-      limit || 50,
-      offset || 0,
-    );
+    return this.alertsService.getSchoolAlerts(req.user.schoolId, status, limit || 50, offset || 0);
   }
 
   @Get('stats')
   @Roles(Role.ROLE_AGENT)
   @ApiOperation({ summary: 'Récupérer les statistiques des alertes' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Statistiques des alertes',
     schema: {
       type: 'object',
@@ -82,27 +83,24 @@ export class AlertsController {
   @Get(':id')
   @Roles(Role.ROLE_AGENT)
   @ApiOperation({ summary: 'Récupérer une alerte spécifique' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Alerte trouvée', 
-    type: AlertResponseDto 
+  @ApiResponse({
+    status: 200,
+    description: 'Alerte trouvée',
+    type: AlertResponseDto,
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
   @ApiResponse({ status: 404, description: 'Alerte non trouvée' })
-  async getAlert(
-    @Param('id') alertId: string,
-    @Request() req: any,
-  ): Promise<AlertResponseDto> {
+  async getAlert(@Param('id') alertId: string, @Request() req: any): Promise<AlertResponseDto> {
     return this.alertsService.getAlert(alertId, req.user.schoolId);
   }
 
   @Patch(':id/status')
   @Roles(Role.ROLE_AGENT)
-  @ApiOperation({ summary: 'Mettre à jour le statut d\'une alerte' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Statut de l\'alerte mis à jour', 
-    type: AlertResponseDto 
+  @ApiOperation({ summary: "Mettre à jour le statut d'une alerte" })
+  @ApiResponse({
+    status: 200,
+    description: "Statut de l'alerte mis à jour",
+    type: AlertResponseDto,
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
   @ApiResponse({ status: 404, description: 'Alerte non trouvée' })
@@ -116,11 +114,11 @@ export class AlertsController {
 
   @Patch(':id/status-with-comment')
   @Roles(Role.ROLE_AGENT)
-  @ApiOperation({ summary: 'Mettre à jour le statut d\'une alerte avec un commentaire obligatoire' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Statut de l\'alerte mis à jour avec commentaire', 
-    type: AlertResponseDto 
+  @ApiOperation({ summary: "Mettre à jour le statut d'une alerte avec un commentaire obligatoire" })
+  @ApiResponse({
+    status: 200,
+    description: "Statut de l'alerte mis à jour avec commentaire",
+    type: AlertResponseDto,
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
   @ApiResponse({ status: 404, description: 'Alerte non trouvée' })
@@ -141,11 +139,11 @@ export class AlertsController {
 
   @Get(':id/comments')
   @Roles(Role.ROLE_AGENT)
-  @ApiOperation({ summary: 'Récupérer les commentaires d\'une alerte' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Liste des commentaires de l\'alerte', 
-    type: [AlertCommentResponseDto] 
+  @ApiOperation({ summary: "Récupérer les commentaires d'une alerte" })
+  @ApiResponse({
+    status: 200,
+    description: "Liste des commentaires de l'alerte",
+    type: [AlertCommentResponseDto],
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
   @ApiResponse({ status: 404, description: 'Alerte non trouvée' })

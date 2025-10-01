@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateAlertCommentDto {
   @ApiProperty({
     enum: ['NOUVELLE', 'EN_COURS', 'TRAITEE'],
-    description: 'Nouveau statut de l\'alerte',
+    description: "Nouveau statut de l'alerte",
   })
   @IsNotEmpty()
   @IsString()
@@ -46,8 +46,3 @@ export class AlertCommentResponseDto {
   @ApiProperty()
   createdAt: Date;
 }
-
-
-
-
-

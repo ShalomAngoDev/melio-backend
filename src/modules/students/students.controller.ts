@@ -44,7 +44,7 @@ export class StudentsController {
 
   @Get()
   @Roles(Role.ROLE_AGENT)
-  @ApiOperation({ summary: 'Lister les élèves de l\'établissement' })
+  @ApiOperation({ summary: "Lister les élèves de l'établissement" })
   @ApiQuery({ name: 'className', required: false, description: 'Filtrer par classe' })
   @ApiQuery({ name: 'search', required: false, description: 'Rechercher par nom ou prénom' })
   @ApiResponse({ status: 200, description: 'Liste des élèves', type: [StudentResponseDto] })
@@ -58,8 +58,8 @@ export class StudentsController {
 
   @Get('me')
   @Roles(Role.ROLE_STUDENT)
-  @ApiOperation({ summary: 'Récupérer le profil de l\'élève connecté' })
-  @ApiResponse({ status: 200, description: 'Profil de l\'élève', type: StudentResponseDto })
+  @ApiOperation({ summary: "Récupérer le profil de l'élève connecté" })
+  @ApiResponse({ status: 200, description: "Profil de l'élève", type: StudentResponseDto })
   @ApiResponse({ status: 403, description: 'Accès refusé' })
   @ApiResponse({ status: 404, description: 'Élève non trouvé' })
   async getMyProfile(@Request() req: any): Promise<StudentResponseDto> {

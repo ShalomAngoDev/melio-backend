@@ -70,11 +70,7 @@ export class ChatService {
   /**
    * Récupère les messages de chat d'un élève
    */
-  async getStudentMessages(
-    studentId: string,
-    limit = 50,
-    offset = 0,
-  ): Promise<ChatMessageDto[]> {
+  async getStudentMessages(studentId: string, limit = 50, offset = 0): Promise<ChatMessageDto[]> {
     // Vérifier que l'élève existe
     const student = await this.prisma.student.findUnique({
       where: { id: studentId },
@@ -91,7 +87,7 @@ export class ChatService {
       skip: offset,
     });
 
-    return messages.map(message => this.mapToDto(message));
+    return messages.map((message) => this.mapToDto(message));
   }
 
   /**
@@ -109,7 +105,7 @@ export class ChatService {
       skip: offset,
     });
 
-    return messages.map(message => this.mapToDto(message));
+    return messages.map((message) => this.mapToDto(message));
   }
 
   /**
@@ -145,13 +141,13 @@ export class ChatService {
    */
   async deleteStudentMessages(studentId: string): Promise<void> {
     this.logger.log(`Suppression de tous les messages de chat pour l'élève ${studentId}`);
-    
+
     await this.prisma.chatMessage.deleteMany({
       where: {
         studentId: studentId,
       },
     });
-    
+
     this.logger.log(`Messages de chat supprimés pour l'élève ${studentId}`);
   }
 
@@ -160,25 +156,29 @@ export class ChatService {
    */
   generateEmpatheticMessage(
     riskLevel: 'FAIBLE' | 'MOYEN' | 'ELEVE' | 'CRITIQUE',
-    category?: string
+    category?: string,
   ): { content: string; resourceId?: string } {
     const messages = {
       FAIBLE: {
-        content: "Salut 👋 merci d'avoir écrit. Écrire aide à se sentir mieux. Tu veux que je te montre un témoignage inspirant ?",
-        resourceId: "res_inspiration_01"
+        content:
+          "Salut 👋 merci d'avoir écrit. Écrire aide à se sentir mieux. Tu veux que je te montre un témoignage inspirant ?",
+        resourceId: 'res_inspiration_01',
       },
       MOYEN: {
-        content: "Je comprends que ça puisse être difficile. Tu n'es pas seul·e, d'autres enfants sont passés par là. Veux-tu voir quelques conseils pratiques ?",
-        resourceId: "res_conseils_pratiques_01"
+        content:
+          "Je comprends que ça puisse être difficile. Tu n'es pas seul·e, d'autres enfants sont passés par là. Veux-tu voir quelques conseils pratiques ?",
+        resourceId: 'res_conseils_pratiques_01',
       },
       ELEVE: {
-        content: "Ça a l'air vraiment difficile pour toi en ce moment. Ce que tu ressens est important. En attendant que l'école t'aide, je peux te montrer une ressource qui a aidé d'autres élèves.",
-        resourceId: this.getResourceByCategory(category)
+        content:
+          "Ça a l'air vraiment difficile pour toi en ce moment. Ce que tu ressens est important. En attendant que l'école t'aide, je peux te montrer une ressource qui a aidé d'autres élèves.",
+        resourceId: this.getResourceByCategory(category),
       },
       CRITIQUE: {
-        content: "Je vois que tu traverses une période très difficile. L'école va être informée pour t'aider rapidement. En attendant, je suis là pour toi. Veux-tu que je te montre une ressource d'urgence ?",
-        resourceId: "res_urgence_01"
-      }
+        content:
+          "Je vois que tu traverses une période très difficile. L'école va être informée pour t'aider rapidement. En attendant, je suis là pour toi. Veux-tu que je te montre une ressource d'urgence ?",
+        resourceId: 'res_urgence_01',
+      },
     };
 
     return messages[riskLevel];
@@ -189,12 +189,12 @@ export class ChatService {
    */
   private getResourceByCategory(category?: string): string {
     const resources = {
-      'harassment': 'res_harassment_01',
-      'violence': 'res_violence_01',
-      'isolation': 'res_isolation_01',
-      'anxiety': 'res_anxiety_01',
-      'depression': 'res_depression_01',
-      'default': 'res_support_general_01'
+      harassment: 'res_harassment_01',
+      violence: 'res_violence_01',
+      isolation: 'res_isolation_01',
+      anxiety: 'res_anxiety_01',
+      depression: 'res_depression_01',
+      default: 'res_support_general_01',
     };
 
     return resources[category as keyof typeof resources] || resources.default;
@@ -207,7 +207,7 @@ export class ChatService {
     studentId: string,
     riskLevel: 'FAIBLE' | 'MOYEN' | 'ELEVE' | 'CRITIQUE',
     category?: string,
-    _relatedTo?: string
+    _relatedTo?: string,
   ): Promise<ChatMessageDto> {
     const { content, resourceId } = this.generateEmpatheticMessage(riskLevel, category);
 

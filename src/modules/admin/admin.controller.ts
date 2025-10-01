@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Query,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -26,7 +16,12 @@ export class AdminController {
   @Get('statistics/global')
   @Roles(Role.ROLE_ADMIN_MELIO)
   @ApiOperation({ summary: 'Obtenir les statistiques globales' })
-  @ApiQuery({ name: 'period', required: false, enum: ['week', 'month', 'year'], description: 'Période de filtrage' })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    enum: ['week', 'month', 'year'],
+    description: 'Période de filtrage',
+  })
   @ApiResponse({ status: 200, description: 'Statistiques globales' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   async getGlobalStats(@Query('period') period?: 'week' | 'month' | 'year') {
@@ -36,7 +31,12 @@ export class AdminController {
   @Get('statistics/temporal')
   @Roles(Role.ROLE_ADMIN_MELIO)
   @ApiOperation({ summary: 'Obtenir les statistiques temporelles globales' })
-  @ApiQuery({ name: 'period', required: false, enum: ['week', 'month', 'year'], description: 'Période de filtrage' })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    enum: ['week', 'month', 'year'],
+    description: 'Période de filtrage',
+  })
   @ApiResponse({ status: 200, description: 'Statistiques temporelles globales' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   async getGlobalTemporalStats(@Query('period') period: 'week' | 'month' | 'year' = 'month') {
@@ -55,9 +55,24 @@ export class AdminController {
   @Get('alerts')
   @Roles(Role.ROLE_ADMIN_MELIO)
   @ApiOperation({ summary: 'Obtenir toutes les alertes de toutes les écoles' })
-  @ApiQuery({ name: 'status', required: false, enum: ['NOUVELLE', 'EN_COURS', 'TRAITEE'], description: 'Filtrer par statut' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Nombre d\'alertes à récupérer (défaut: 50)' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Décalage pour la pagination (défaut: 0)' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['NOUVELLE', 'EN_COURS', 'TRAITEE'],
+    description: 'Filtrer par statut',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: "Nombre d'alertes à récupérer (défaut: 50)",
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Décalage pour la pagination (défaut: 0)',
+  })
   @ApiResponse({ status: 200, description: 'Liste des alertes globales' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   async getGlobalAlerts(
@@ -71,9 +86,24 @@ export class AdminController {
   @Get('reports')
   @Roles(Role.ROLE_ADMIN_MELIO)
   @ApiOperation({ summary: 'Obtenir tous les signalements de toutes les écoles' })
-  @ApiQuery({ name: 'status', required: false, enum: ['NOUVEAU', 'EN_COURS', 'TRAITE'], description: 'Filtrer par statut' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Nombre de signalements à récupérer (défaut: 50)' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Décalage pour la pagination (défaut: 0)' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['NOUVEAU', 'EN_COURS', 'TRAITE'],
+    description: 'Filtrer par statut',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Nombre de signalements à récupérer (défaut: 50)',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Décalage pour la pagination (défaut: 0)',
+  })
   @ApiResponse({ status: 200, description: 'Liste des signalements globaux' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   async getGlobalReports(
@@ -86,8 +116,8 @@ export class AdminController {
 
   @Get('statistics/school/:schoolId')
   @Roles(Role.ROLE_ADMIN_MELIO)
-  @ApiOperation({ summary: 'Obtenir les statistiques d\'une école spécifique' })
-  @ApiResponse({ status: 200, description: 'Statistiques de l\'école' })
+  @ApiOperation({ summary: "Obtenir les statistiques d'une école spécifique" })
+  @ApiResponse({ status: 200, description: "Statistiques de l'école" })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   @ApiResponse({ status: 404, description: 'École non trouvée' })
   async getSchoolStats(@Param('schoolId') schoolId: string) {
@@ -100,10 +130,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'École modifiée avec succès' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   @ApiResponse({ status: 404, description: 'École non trouvée' })
-  async updateSchool(
-    @Param('schoolId') schoolId: string,
-    @Body() updateData: any,
-  ) {
+  async updateSchool(@Param('schoolId') schoolId: string, @Body() updateData: any) {
     return this.adminService.updateSchool(schoolId, updateData);
   }
 
@@ -132,8 +159,8 @@ export class AdminController {
 
   @Get('schools/:schoolId/agents')
   @Roles(Role.ROLE_ADMIN_MELIO)
-  @ApiOperation({ summary: 'Obtenir les agents d\'une école' })
-  @ApiResponse({ status: 200, description: 'Liste des agents de l\'école' })
+  @ApiOperation({ summary: "Obtenir les agents d'une école" })
+  @ApiResponse({ status: 200, description: "Liste des agents de l'école" })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   @ApiResponse({ status: 404, description: 'École non trouvée' })
   async getSchoolAgents(@Param('schoolId') schoolId: string) {
@@ -142,7 +169,7 @@ export class AdminController {
 
   @Delete('schools/:schoolId/agents/:agentId')
   @Roles(Role.ROLE_ADMIN_MELIO)
-  @ApiOperation({ summary: 'Supprimer un agent d\'une école' })
+  @ApiOperation({ summary: "Supprimer un agent d'une école" })
   @ApiResponse({ status: 200, description: 'Agent supprimé avec succès' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   @ApiResponse({ status: 404, description: 'Agent ou école non trouvé' })

@@ -14,15 +14,11 @@ export class MockMinioService {
     }
   }
 
-  async uploadFile(
-    objectName: string,
-    filePath: string,
-    _metaData?: any,
-  ): Promise<string> {
+  async uploadFile(objectName: string, filePath: string, _metaData?: any): Promise<string> {
     try {
       const destPath = path.join(this.uploadDir, objectName);
       const destDir = path.dirname(destPath);
-      
+
       if (!fs.existsSync(destDir)) {
         fs.mkdirSync(destDir, { recursive: true });
       }
@@ -37,15 +33,11 @@ export class MockMinioService {
     }
   }
 
-  async uploadBuffer(
-    objectName: string,
-    buffer: Buffer,
-    _metaData?: any,
-  ): Promise<string> {
+  async uploadBuffer(objectName: string, buffer: Buffer, _metaData?: any): Promise<string> {
     try {
       const destPath = path.join(this.uploadDir, objectName);
       const destDir = path.dirname(destPath);
-      
+
       if (!fs.existsSync(destDir)) {
         fs.mkdirSync(destDir, { recursive: true });
       }
@@ -82,8 +74,8 @@ export class MockMinioService {
     try {
       const files = fs.readdirSync(this.uploadDir, { recursive: true });
       return files
-        .filter(file => typeof file === 'string' && (!prefix || file.startsWith(prefix)))
-        .map(file => ({
+        .filter((file) => typeof file === 'string' && (!prefix || file.startsWith(prefix)))
+        .map((file) => ({
           name: file,
           size: fs.statSync(path.join(this.uploadDir, file as string)).size,
           lastModified: fs.statSync(path.join(this.uploadDir, file as string)).mtime,

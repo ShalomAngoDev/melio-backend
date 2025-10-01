@@ -11,11 +11,11 @@ import { MinioConfig } from './minio-config.interface';
       provide: MinioService,
       useFactory: (configService: ConfigService) => {
         const nodeEnv = configService.get<string>('NODE_ENV', 'development');
-        
+
         if (nodeEnv === 'development' && !configService.get<string>('MINIO_ENDPOINT')) {
           return new MockMinioService();
         }
-        
+
         const config: MinioConfig = {
           endPoint: configService.get<string>('MINIO_ENDPOINT', 'localhost'),
           port: configService.get<number>('MINIO_PORT', 9000),

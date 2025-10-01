@@ -212,7 +212,14 @@ export class AuthService {
 
       // Generate new tokens
       const newAccessToken = this.jwtService.sign(
-        { sub: payload.sub, type: payload.type, email: payload.email, role: payload.role, schoolId: payload.schoolId, schoolCode: payload.schoolCode },
+        {
+          sub: payload.sub,
+          type: payload.type,
+          email: payload.email,
+          role: payload.role,
+          schoolId: payload.schoolId,
+          schoolCode: payload.schoolCode,
+        },
         {
           secret: this.configService.get('JWT_SECRET'),
           expiresIn: this.configService.get('JWT_EXPIRES_IN', '15m'),
@@ -220,7 +227,14 @@ export class AuthService {
       );
 
       const newRefreshToken = this.jwtService.sign(
-        { sub: payload.sub, type: payload.type, email: payload.email, role: payload.role, schoolId: payload.schoolId, schoolCode: payload.schoolCode },
+        {
+          sub: payload.sub,
+          type: payload.type,
+          email: payload.email,
+          role: payload.role,
+          schoolId: payload.schoolId,
+          schoolCode: payload.schoolCode,
+        },
         {
           secret: this.configService.get('JWT_REFRESH_SECRET'),
           expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),

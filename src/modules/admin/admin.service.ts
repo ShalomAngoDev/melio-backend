@@ -25,14 +25,14 @@ export class AdminService {
             startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
             break;
         }
-        
+
         dateCondition = { createdAt: { gte: startDate } };
       }
 
       // Compter les écoles (pas de filtre de date)
       const totalSchools = await this.prisma.school.count();
       const activeSchools = await this.prisma.school.count({
-        where: { status: 'ACTIVE' }
+        where: { status: 'ACTIVE' },
       });
 
       // Compter les étudiants (pas de filtre de date)
@@ -51,28 +51,31 @@ export class AdminService {
       try {
         // Test simple pour vérifier si la table existe
         await this.prisma.$queryRaw`SELECT 1 FROM alerts LIMIT 1`;
-        
+
         totalAlerts = await this.prisma.alert.count({
-          where: dateCondition
+          where: dateCondition,
         });
         criticalAlerts = await this.prisma.alert.count({
-          where: { ...dateCondition, riskLevel: 'CRITIQUE' }
+          where: { ...dateCondition, riskLevel: 'CRITIQUE' },
         });
         resolvedAlerts = await this.prisma.alert.count({
-          where: { ...dateCondition, status: 'TRAITEE' }
+          where: { ...dateCondition, status: 'TRAITEE' },
         });
 
         // Récupérer les alertes pour calculer la répartition par niveau de risque
         const alerts = await this.prisma.alert.findMany({
           where: dateCondition,
-          select: { riskLevel: true }
+          select: { riskLevel: true },
         });
 
         // Calculer la répartition par niveau de risque des alertes
-        alertsByRiskLevel = alerts.reduce((acc, alert) => {
-          acc[alert.riskLevel] = (acc[alert.riskLevel] || 0) + 1;
-          return acc;
-        }, { CRITIQUE: 0, ELEVE: 0, MOYEN: 0, FAIBLE: 0 });
+        alertsByRiskLevel = alerts.reduce(
+          (acc, alert) => {
+            acc[alert.riskLevel] = (acc[alert.riskLevel] || 0) + 1;
+            return acc;
+          },
+          { CRITIQUE: 0, ELEVE: 0, MOYEN: 0, FAIBLE: 0 },
+        );
       } catch (alertError) {
         console.log('Tables alertes non disponibles:', alertError.message);
       }
@@ -86,28 +89,31 @@ export class AdminService {
       try {
         // Test simple pour vérifier si la table existe
         await this.prisma.$queryRaw`SELECT 1 FROM reports LIMIT 1`;
-        
+
         totalReports = await this.prisma.report.count({
-          where: dateCondition
+          where: dateCondition,
         });
         newReports = await this.prisma.report.count({
-          where: { ...dateCondition, status: 'NOUVEAU' }
+          where: { ...dateCondition, status: 'NOUVEAU' },
         });
         resolvedReports = await this.prisma.report.count({
-          where: { ...dateCondition, status: 'TRAITE' }
+          where: { ...dateCondition, status: 'TRAITE' },
         });
 
         // Récupérer les signalements pour calculer la répartition par urgence
         const reports = await this.prisma.report.findMany({
           where: dateCondition,
-          select: { urgency: true }
+          select: { urgency: true },
         });
 
         // Calculer la répartition par urgence des signalements
-        reportsByUrgency = reports.reduce((acc, report) => {
-          acc[report.urgency] = (acc[report.urgency] || 0) + 1;
-          return acc;
-        }, { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 });
+        reportsByUrgency = reports.reduce(
+          (acc, report) => {
+            acc[report.urgency] = (acc[report.urgency] || 0) + 1;
+            return acc;
+          },
+          { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 },
+        );
       } catch (reportError) {
         console.log('Tables signalements non disponibles:', reportError.message);
       }
@@ -175,16 +181,16 @@ export class AdminService {
       for (let i = 0; i < maxPoints; i++) {
         const intervalStart = new Date(startDate.getTime() + i * stepDays * 24 * 60 * 60 * 1000);
         const intervalEnd = new Date(intervalStart.getTime() + stepDays * 24 * 60 * 60 * 1000);
-        
+
         // S'assurer que le dernier intervalle va jusqu'à maintenant
         if (i === maxPoints - 1) {
           intervalEnd.setTime(now.getTime());
         }
-        
+
         intervals.push({
           start: intervalStart,
           end: intervalEnd,
-          label: this.formatDateLabel(intervalStart, period)
+          label: this.formatDateLabel(intervalStart, period),
         });
       }
 
@@ -193,97 +199,103 @@ export class AdminService {
       try {
         // Vérifier d'abord si la table existe
         await this.prisma.$queryRaw`SELECT 1 FROM alerts LIMIT 1`;
-        
-          for (const interval of intervals) {
-            const alerts = await this.prisma.alert.findMany({
-              where: {
-                createdAt: {
-                  gte: interval.start,
-                  lt: interval.end
-                }
-              }
-            });
 
-            const critical = alerts.filter(a => a.riskLevel === 'CRITIQUE').length;
-            const high = alerts.filter(a => a.riskLevel === 'ELEVE').length;
-            const medium = alerts.filter(a => a.riskLevel === 'MOYEN').length;
-            const low = alerts.filter(a => a.riskLevel === 'FAIBLE').length;
+        for (const interval of intervals) {
+          const alerts = await this.prisma.alert.findMany({
+            where: {
+              createdAt: {
+                gte: interval.start,
+                lt: interval.end,
+              },
+            },
+          });
 
-            alertsData.push({
-              label: interval.label,
-              critical,
-              high,
-              medium,
-              low
-            });
-          }
-        } catch (alertError) {
-          console.log('Tables alertes non disponibles pour les statistiques temporelles:', alertError.message);
-          // Créer des données vides pour chaque intervalle
-          for (const interval of intervals) {
-            alertsData.push({
-              label: interval.label,
-              critical: 0,
-              high: 0,
-              medium: 0,
-              low: 0
-            });
-          }
+          const critical = alerts.filter((a) => a.riskLevel === 'CRITIQUE').length;
+          const high = alerts.filter((a) => a.riskLevel === 'ELEVE').length;
+          const medium = alerts.filter((a) => a.riskLevel === 'MOYEN').length;
+          const low = alerts.filter((a) => a.riskLevel === 'FAIBLE').length;
+
+          alertsData.push({
+            label: interval.label,
+            critical,
+            high,
+            medium,
+            low,
+          });
         }
-
-        // Charger les signalements pour chaque intervalle (avec gestion d'erreur)
-        const reportsData = [];
-        try {
-          // Vérifier d'abord si la table existe
-          await this.prisma.$queryRaw`SELECT 1 FROM reports LIMIT 1`;
-          
-          for (const interval of intervals) {
-            const reports = await this.prisma.report.findMany({
-              where: {
-                createdAt: {
-                  gte: interval.start,
-                  lt: interval.end
-                }
-              }
-            });
-
-            const critical = reports.filter(r => r.urgency === 'CRITICAL').length;
-            const high = reports.filter(r => r.urgency === 'HIGH').length;
-            const medium = reports.filter(r => r.urgency === 'MEDIUM').length;
-            const low = reports.filter(r => r.urgency === 'LOW').length;
-
-            reportsData.push({
-              label: interval.label,
-              critical,
-              high,
-              medium,
-              low
-            });
-          }
-        } catch (reportError) {
-          console.log('Tables signalements non disponibles pour les statistiques temporelles:', reportError.message);
-          // Créer des données vides pour chaque intervalle
-          for (const interval of intervals) {
-            reportsData.push({
-              label: interval.label,
-              critical: 0,
-              high: 0,
-              medium: 0,
-              low: 0
-            });
-          }
+      } catch (alertError) {
+        console.log(
+          'Tables alertes non disponibles pour les statistiques temporelles:',
+          alertError.message,
+        );
+        // Créer des données vides pour chaque intervalle
+        for (const interval of intervals) {
+          alertsData.push({
+            label: interval.label,
+            critical: 0,
+            high: 0,
+            medium: 0,
+            low: 0,
+          });
         }
+      }
+
+      // Charger les signalements pour chaque intervalle (avec gestion d'erreur)
+      const reportsData = [];
+      try {
+        // Vérifier d'abord si la table existe
+        await this.prisma.$queryRaw`SELECT 1 FROM reports LIMIT 1`;
+
+        for (const interval of intervals) {
+          const reports = await this.prisma.report.findMany({
+            where: {
+              createdAt: {
+                gte: interval.start,
+                lt: interval.end,
+              },
+            },
+          });
+
+          const critical = reports.filter((r) => r.urgency === 'CRITICAL').length;
+          const high = reports.filter((r) => r.urgency === 'HIGH').length;
+          const medium = reports.filter((r) => r.urgency === 'MEDIUM').length;
+          const low = reports.filter((r) => r.urgency === 'LOW').length;
+
+          reportsData.push({
+            label: interval.label,
+            critical,
+            high,
+            medium,
+            low,
+          });
+        }
+      } catch (reportError) {
+        console.log(
+          'Tables signalements non disponibles pour les statistiques temporelles:',
+          reportError.message,
+        );
+        // Créer des données vides pour chaque intervalle
+        for (const interval of intervals) {
+          reportsData.push({
+            label: interval.label,
+            critical: 0,
+            high: 0,
+            medium: 0,
+            low: 0,
+          });
+        }
+      }
 
       return {
         alerts: alertsData,
-        reports: reportsData
+        reports: reportsData,
       };
     } catch (error) {
       console.error('Erreur dans getGlobalTemporalStats:', error);
       // Retourner des données vides en cas d'erreur
       return {
         alerts: [],
-        reports: []
+        reports: [],
       };
     }
   }
@@ -318,7 +330,7 @@ export class AdminService {
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
     });
 
     return schools;
@@ -326,7 +338,7 @@ export class AdminService {
 
   async getGlobalAlerts(status?: string, limit: number = 50, offset: number = 0) {
     const where: any = {};
-    
+
     if (status) {
       where.status = status;
     }
@@ -350,10 +362,7 @@ export class AdminService {
           },
         },
       },
-      orderBy: [
-        { createdAt: 'desc' },
-        { status: 'asc' },
-      ],
+      orderBy: [{ createdAt: 'desc' }, { status: 'asc' }],
       take: limit,
       skip: offset,
     });
@@ -363,7 +372,7 @@ export class AdminService {
 
   async getGlobalReports(status?: string, limit: number = 50, offset: number = 0) {
     const where: any = {};
-    
+
     if (status) {
       where.status = status;
     }
@@ -387,10 +396,7 @@ export class AdminService {
           },
         },
       },
-      orderBy: [
-        { createdAt: 'desc' },
-        { status: 'asc' },
-      ],
+      orderBy: [{ createdAt: 'desc' }, { status: 'asc' }],
       take: limit,
       skip: offset,
     });
@@ -402,7 +408,7 @@ export class AdminService {
     // Vérifier que l'école existe
     const school = await this.prisma.school.findUnique({
       where: { id: schoolId },
-      select: { name: true, code: true }
+      select: { name: true, code: true },
     });
 
     if (!school) {
@@ -411,41 +417,41 @@ export class AdminService {
 
     // Compter les étudiants
     const totalStudents = await this.prisma.student.count({
-      where: { schoolId }
+      where: { schoolId },
     });
 
     // Compter les alertes
     const totalAlerts = await this.prisma.alert.count({
-      where: { schoolId }
+      where: { schoolId },
     });
 
     const alertsByStatus = await this.prisma.alert.groupBy({
       by: ['status'],
       where: { schoolId },
-      _count: { status: true }
+      _count: { status: true },
     });
 
     const alertsByRiskLevel = await this.prisma.alert.groupBy({
       by: ['riskLevel'],
       where: { schoolId },
-      _count: { riskLevel: true }
+      _count: { riskLevel: true },
     });
 
     // Compter les signalements
     const totalReports = await this.prisma.report.count({
-      where: { schoolId }
+      where: { schoolId },
     });
 
     const reportsByStatus = await this.prisma.report.groupBy({
       by: ['status'],
       where: { schoolId },
-      _count: { status: true }
+      _count: { status: true },
     });
 
     const reportsByUrgency = await this.prisma.report.groupBy({
       by: ['urgency'],
       where: { schoolId },
-      _count: { urgency: true }
+      _count: { urgency: true },
     });
 
     return {
@@ -455,29 +461,41 @@ export class AdminService {
       totalStudents,
       totalAlerts,
       totalReports,
-      alertsByStatus: alertsByStatus.reduce((acc, item) => {
-        acc[item.status] = item._count.status;
-        return acc;
-      }, {} as Record<string, number>),
-      reportsByStatus: reportsByStatus.reduce((acc, item) => {
-        acc[item.status] = item._count.status;
-        return acc;
-      }, {} as Record<string, number>),
-      alertsByRiskLevel: alertsByRiskLevel.reduce((acc, item) => {
-        acc[item.riskLevel] = item._count.riskLevel;
-        return acc;
-      }, {} as Record<string, number>),
-      reportsByUrgency: reportsByUrgency.reduce((acc, item) => {
-        acc[item.urgency] = item._count.urgency;
-        return acc;
-      }, {} as Record<string, number>),
+      alertsByStatus: alertsByStatus.reduce(
+        (acc, item) => {
+          acc[item.status] = item._count.status;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      reportsByStatus: reportsByStatus.reduce(
+        (acc, item) => {
+          acc[item.status] = item._count.status;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      alertsByRiskLevel: alertsByRiskLevel.reduce(
+        (acc, item) => {
+          acc[item.riskLevel] = item._count.riskLevel;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      reportsByUrgency: reportsByUrgency.reduce(
+        (acc, item) => {
+          acc[item.urgency] = item._count.urgency;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
     };
   }
 
   async updateSchool(schoolId: string, updateData: any) {
     // Vérifier que l'école existe
     const school = await this.prisma.school.findUnique({
-      where: { id: schoolId }
+      where: { id: schoolId },
     });
 
     if (!school) {
@@ -502,7 +520,7 @@ export class AdminService {
         status: updateData.status,
         settings: updateData.settings ? JSON.stringify(updateData.settings) : school.settings,
         updatedAt: new Date(),
-      }
+      },
     });
 
     return updatedSchool;
@@ -511,7 +529,7 @@ export class AdminService {
   async deleteSchool(schoolId: string) {
     // Vérifier que l'école existe
     const school = await this.prisma.school.findUnique({
-      where: { id: schoolId }
+      where: { id: schoolId },
     });
 
     if (!school) {
@@ -520,7 +538,7 @@ export class AdminService {
 
     // Supprimer l'école (cascade supprimera les données liées)
     await this.prisma.school.delete({
-      where: { id: schoolId }
+      where: { id: schoolId },
     });
 
     return { message: 'École supprimée avec succès' };
@@ -529,7 +547,7 @@ export class AdminService {
   async addAgentToSchool(schoolId: string, agentData: { email: string; password: string }) {
     // Vérifier que l'école existe
     const school = await this.prisma.school.findUnique({
-      where: { id: schoolId }
+      where: { id: schoolId },
     });
 
     if (!school) {
@@ -538,7 +556,7 @@ export class AdminService {
 
     // Vérifier que l'email n'est pas déjà utilisé
     const existingAgent = await this.prisma.agentUser.findUnique({
-      where: { email: agentData.email }
+      where: { email: agentData.email },
     });
 
     if (existingAgent) {
@@ -554,8 +572,8 @@ export class AdminService {
         email: agentData.email,
         password: hashedPassword,
         schoolId: schoolId,
-        role: 'ROLE_AGENT'
-      }
+        role: 'ROLE_AGENT',
+      },
     });
 
     return {
@@ -563,14 +581,14 @@ export class AdminService {
       email: agent.email,
       schoolId: agent.schoolId,
       role: agent.role,
-      createdAt: agent.createdAt
+      createdAt: agent.createdAt,
     };
   }
 
   async getSchoolAgents(schoolId: string) {
     // Vérifier que l'école existe
     const school = await this.prisma.school.findUnique({
-      where: { id: schoolId }
+      where: { id: schoolId },
     });
 
     if (!school) {
@@ -585,8 +603,8 @@ export class AdminService {
         email: true,
         role: true,
         createdAt: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     });
 
     return agents;
@@ -597,8 +615,8 @@ export class AdminService {
     const agent = await this.prisma.agentUser.findFirst({
       where: {
         id: agentId,
-        schoolId: schoolId
-      }
+        schoolId: schoolId,
+      },
     });
 
     if (!agent) {
@@ -607,7 +625,7 @@ export class AdminService {
 
     // Supprimer l'agent
     await this.prisma.agentUser.delete({
-      where: { id: agentId }
+      where: { id: agentId },
     });
 
     return { message: 'Agent supprimé avec succès' };

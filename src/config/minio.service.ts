@@ -11,7 +11,7 @@ export class MinioService {
 
   constructor(@Optional() private readonly config?: MinioConfig) {
     this.isEnabled = !!(config?.endPoint && config?.accessKey && config?.secretKey);
-    
+
     if (this.isEnabled) {
       this.minioClient = new Minio.Client({
         endPoint: config!.endPoint,
@@ -74,7 +74,13 @@ export class MinioService {
     metaData?: Minio.ItemBucketMetadata,
   ): Promise<string> {
     try {
-      await this.minioClient.putObject(this.bucketName, objectName, buffer, buffer.length, metaData);
+      await this.minioClient.putObject(
+        this.bucketName,
+        objectName,
+        buffer,
+        buffer.length,
+        metaData,
+      );
       const url = await this.getFileUrl(objectName);
       this.logger.log(`Buffer uploaded successfully: ${objectName}`);
       return url;
@@ -107,7 +113,7 @@ export class MinioService {
     try {
       const objects: Minio.BucketItem[] = [];
       const stream = this.minioClient.listObjects(this.bucketName, prefix, true);
-      
+
       return new Promise((resolve, reject) => {
         stream.on('data', (obj: any) => objects.push(obj));
         stream.on('error', reject);
@@ -123,7 +129,7 @@ export class MinioService {
     try {
       const stream = await this.minioClient.getObject(this.bucketName, objectName);
       const chunks: Buffer[] = [];
-      
+
       return new Promise((resolve, reject) => {
         stream.on('data', (chunk) => chunks.push(chunk));
         stream.on('end', () => resolve(Buffer.concat(chunks)));
