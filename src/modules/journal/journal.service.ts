@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import { CreateJournalEntryDto } from './dto/create-journal-entry.dto';
 import { JournalEntryResponseDto } from './dto/journal-entry-response.dto';

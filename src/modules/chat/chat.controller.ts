@@ -15,7 +15,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/decorators/role.enum';
 import { ChatService } from './chat.service';
-import { ChatMessageDto, CreateChatMessageDto, ChatStatsDto } from './dto/chat-message.dto';
+import { ChatMessageDto, CreateChatMessageDto } from './dto/chat-message.dto';
 
 @ApiTags('Chat')
 @Controller('students')

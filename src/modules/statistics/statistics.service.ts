@@ -273,7 +273,7 @@ export class StatisticsService {
 
   private generateTemporalData(data: any[], period: string, levelField: string) {
     const now = new Date();
-    let intervals: Array<{ label: string; start: Date; end: Date }> = [];
+    const intervals: Array<{ label: string; start: Date; end: Date }> = [];
 
     if (period === 'week') {
       for (let i = 6; i >= 0; i--) {

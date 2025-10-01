@@ -19,14 +19,19 @@ async function bootstrap() {
     console.error('❌ Prisma migration failed:', error.message);
   }
   
-  // Toujours exécuter la migration manuelle pour s'assurer que les tables existent
+  // Créer le compte admin si nécessaire (production et développement)
   try {
-    console.log('🔄 Running manual migration to ensure tables exist...');
-    execSync('node scripts/force-migrate.js', { stdio: 'inherit' });
-    console.log('✅ Manual migration completed');
-  } catch (manualError) {
-    console.error('❌ Manual migration failed:', manualError.message);
+    console.log('🔄 Ensuring admin account exists...');
+    execSync('node scripts/ensure-admin.js', { stdio: 'inherit' });
+    console.log('✅ Admin account check completed');
+  } catch (adminError) {
+    console.error('⚠️ Admin account creation warning:', adminError.message);
+    // Ne pas bloquer le démarrage si l'admin existe déjà
   }
+  
+  // NOTE: Le script force-migrate.js ne doit être exécuté QU'UNE SEULE FOIS lors de la configuration initiale
+  // Il lance des scripts de seeding qui peuvent créer une boucle infinie
+  // Pour l'exécuter manuellement : node scripts/force-migrate.js
   
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);

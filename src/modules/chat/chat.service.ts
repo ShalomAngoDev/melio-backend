@@ -207,7 +207,7 @@ export class ChatService {
     studentId: string,
     riskLevel: 'FAIBLE' | 'MOYEN' | 'ELEVE' | 'CRITIQUE',
     category?: string,
-    relatedTo?: string
+    _relatedTo?: string
   ): Promise<ChatMessageDto> {
     const { content, resourceId } = this.generateEmpatheticMessage(riskLevel, category);
 

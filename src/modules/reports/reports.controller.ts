@@ -9,7 +9,6 @@ import {
   Query,
   UseGuards,
   Request,
-  ParseEnumPipe,
 } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { CreateReportDto, UpdateReportDto, ReportResponseDto } from './dto';

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
-import { AlertResponseDto, StudentInfoDto } from './dto/alert-response.dto';
+import { AlertResponseDto } from './dto/alert-response.dto';
 import { CreateAlertCommentDto, AlertCommentResponseDto } from './dto/alert-comment.dto';
 
 @Injectable()

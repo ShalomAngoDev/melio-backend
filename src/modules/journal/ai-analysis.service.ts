@@ -368,7 +368,7 @@ export class AIAnalysisService {
   /**
    * Construit le résumé basé sur la catégorie dominante
    */
-  private buildSummary(dominantCategory: string, text: string, catScores: Record<string, number>): string {
+  private buildSummary(dominantCategory: string, text: string, _catScores: Record<string, number>): string {
     const categoryNames = {
       'A': 'violence physique',
       'B': 'menaces et intimidation',

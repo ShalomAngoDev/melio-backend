@@ -230,4 +230,47 @@ kill -9 $(lsof -ti:3000)
 
 ---
 
+## 🔧 Résolution de problèmes courants
+
+### Boucle infinie de requêtes SQL au démarrage
+
+**Symptôme** : Des milliers de requêtes SQL identiques s'affichent dans la console au démarrage.
+
+**Cause** : Le script `force-migrate.js` contient des opérations de seeding qui s'exécutent en boucle.
+
+**Solution** : Ce script a été désactivé dans `main.ts` car il ne doit être exécuté qu'une seule fois lors de la configuration initiale. 
+
+Si vous avez besoin de réinitialiser complètement la base de données :
+```bash
+# Arrêter l'application (Ctrl+C)
+# Exécuter manuellement :
+node scripts/force-migrate.js
+# Puis relancer :
+npm run dev
+```
+
+### Erreur de shadow database (P3014)
+
+**Symptôme** : `Prisma Migrate could not create the shadow database`
+
+**Cause** : L'utilisateur PostgreSQL n'a pas la permission de créer des bases de données.
+
+**Solution** :
+```bash
+# Se connecter avec un utilisateur ayant les droits (par ex. votre utilisateur système)
+psql -U $(whoami) -d postgres -c "ALTER USER postgres CREATEDB;"
+```
+
+### Réduire les logs SQL
+
+Par défaut, les logs SQL sont désactivés. Pour les activer (utile pour le débogage) :
+```bash
+# Dans votre fichier .env, ajouter :
+LOG_SQL=true
+```
+
+---
+
 *Guide de développement local Melio - Mise à jour automatique*
+
+

@@ -17,7 +17,7 @@ export class MockMinioService {
   async uploadFile(
     objectName: string,
     filePath: string,
-    metaData?: any,
+    _metaData?: any,
   ): Promise<string> {
     try {
       const destPath = path.join(this.uploadDir, objectName);
@@ -40,7 +40,7 @@ export class MockMinioService {
   async uploadBuffer(
     objectName: string,
     buffer: Buffer,
-    metaData?: any,
+    _metaData?: any,
   ): Promise<string> {
     try {
       const destPath = path.join(this.uploadDir, objectName);
@@ -60,7 +60,7 @@ export class MockMinioService {
     }
   }
 
-  async getFileUrl(objectName: string, expiry: number = 7 * 24 * 60 * 60): Promise<string> {
+  async getFileUrl(objectName: string, _expiry: number = 7 * 24 * 60 * 60): Promise<string> {
     // Return a local file URL for development
     return `http://localhost:3000/uploads/${objectName}`;
   }

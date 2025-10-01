@@ -189,7 +189,7 @@ export class ChatAIService {
   /**
    * Détermine si une ressource doit être ajoutée
    */
-  private shouldAddResource(category: string, message: string): boolean {
+  private shouldAddResource(category: string, _message: string): boolean {
     // Toujours ajouter une ressource pour les situations graves
     if (['violence', 'bullying'].includes(category)) {
       return true;
@@ -237,6 +237,8 @@ export class ChatAIService {
     };
   }
 }
+
+
 
 
 
