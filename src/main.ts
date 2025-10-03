@@ -43,9 +43,36 @@ async function bootstrap() {
 
   // CORS
   const corsOrigins = configService.get('CORS_ORIGINS', '').split(',');
+  const productionOrigins = [
+    'https://www.melio-soutien.net',
+    'https://melio-soutien.net',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:8080'
+  ];
+  
+  const allowedOrigins = [...corsOrigins, ...productionOrigins].filter(Boolean);
+  
   app.enableCors({
-    origin: corsOrigins,
+    origin: (origin, callback) => {
+      // Autoriser les requêtes sans origin (ex: mobile apps, Postman)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // En production, autoriser seulement les domaines spécifiés
+      if (configService.get('NODE_ENV') === 'production') {
+        return callback(new Error('Not allowed by CORS'), false);
+      }
+      
+      // En développement, autoriser toutes les origines
+      return callback(null, true);
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
   // Global prefix
