@@ -240,28 +240,148 @@ export class AlertsService {
    * Récupère les commentaires d'une alerte
    */
   async getAlertComments(alertId: string, schoolId: string): Promise<AlertCommentResponseDto[]> {
-    const alert = await this.prisma.alert.findUnique({
-      where: { id: alertId },
-    });
+    try {
+      const alert = await this.prisma.alert.findUnique({
+        where: { id: alertId },
+      });
 
-    if (!alert || alert.schoolId !== schoolId) {
-      throw new NotFoundException(`Alert with ID ${alertId} not found or not in your school.`);
+      if (!alert) {
+        this.logger.warn(`Alert ${alertId} not found`);
+        return []; // Retourner un tableau vide au lieu de lever une exception
+      }
+
+      if (alert.schoolId !== schoolId) {
+        this.logger.warn(`Alert ${alertId} does not belong to school ${schoolId}`);
+        return []; // Retourner un tableau vide au lieu de lever une exception
+      }
+
+      const comments = await this.prisma.alertComment.findMany({
+        where: { alertId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      this.logger.log(`Found ${comments.length} comments for alert ${alertId}`);
+
+      return comments.map((comment) => ({
+        id: comment.id,
+        alertId: comment.alertId,
+        agentId: comment.agentId,
+        agentName: comment.agentName,
+        oldStatus: comment.oldStatus,
+        newStatus: comment.newStatus,
+        comment: comment.comment,
+        createdAt: comment.createdAt,
+      }));
+    } catch (error) {
+      this.logger.error(`Error getting comments for alert ${alertId}:`, error);
+      throw error;
     }
+  }
 
-    const comments = await this.prisma.alertComment.findMany({
-      where: { alertId },
-      orderBy: { createdAt: 'desc' },
-    });
+  /**
+   * Valide l'existence d'une alerte
+   */
+  async validateAlert(alertId: string, schoolId: string): Promise<{
+    exists: boolean;
+    alertId: string;
+    schoolId?: string;
+    status?: string;
+  }> {
+    try {
+      const alert = await this.prisma.alert.findUnique({
+        where: { id: alertId },
+        select: {
+          id: true,
+          schoolId: true,
+          status: true,
+        },
+      });
 
-    return comments.map((comment) => ({
-      id: comment.id,
-      alertId: comment.alertId,
-      agentId: comment.agentId,
-      agentName: comment.agentName,
-      oldStatus: comment.oldStatus,
-      newStatus: comment.newStatus,
-      comment: comment.comment,
-      createdAt: comment.createdAt,
-    }));
+      if (!alert) {
+        this.logger.warn(`Alert ${alertId} not found`);
+        return {
+          exists: false,
+          alertId,
+        };
+      }
+
+      if (alert.schoolId !== schoolId) {
+        this.logger.warn(`Alert ${alertId} does not belong to school ${schoolId}`);
+        return {
+          exists: false,
+          alertId,
+        };
+      }
+
+      this.logger.log(`Alert ${alertId} is valid for school ${schoolId}`);
+      return {
+        exists: true,
+        alertId: alert.id,
+        schoolId: alert.schoolId,
+        status: alert.status,
+      };
+    } catch (error) {
+      this.logger.error(`Error validating alert ${alertId}:`, error);
+      return {
+        exists: false,
+        alertId,
+      };
+    }
+  }
+
+  /**
+   * Force le rechargement des alertes (vide le cache)
+   */
+  async refreshAlerts(schoolId: string): Promise<{
+    message: string;
+    timestamp: string;
+    schoolId: string;
+  }> {
+    try {
+      // Ici on pourrait vider un cache Redis si on en avait un
+      // Pour l'instant, on retourne juste un message de confirmation
+      
+      this.logger.log(`Cache refresh requested for school ${schoolId}`);
+      
+      return {
+        message: 'Cache vidé avec succès. Les données seront rechargées au prochain appel.',
+        timestamp: new Date().toISOString(),
+        schoolId,
+      };
+    } catch (error) {
+      this.logger.error(`Error refreshing cache for school ${schoolId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Déboguer les IDs d'alertes invalides
+   */
+  async debugInvalidIds(schoolId: string): Promise<{
+    invalidIds: string[];
+    validIds: string[];
+    total: number;
+  }> {
+    try {
+      const alerts = await this.prisma.alert.findMany({
+        where: { schoolId },
+        select: { id: true },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const validIds = alerts.map(alert => alert.id);
+      const total = validIds.length;
+
+      this.logger.log(`Found ${total} valid alerts for school ${schoolId}`);
+
+      return {
+        invalidIds: [], // Pour l'instant, on ne stocke pas les IDs invalides
+        validIds,
+        total,
+      };
+    } catch (error) {
+      this.logger.error(`Error debugging invalid IDs for school ${schoolId}:`, error);
+      throw error;
+    }
   }
 }

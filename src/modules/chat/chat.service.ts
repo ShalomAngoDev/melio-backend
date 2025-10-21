@@ -162,12 +162,12 @@ export class ChatService {
       FAIBLE: {
         content:
           "Salut 👋 merci d'avoir écrit. Écrire aide à se sentir mieux. Tu veux que je te montre un témoignage inspirant ?",
-        resourceId: 'res_inspiration_01',
+        resourceId: 'cmgb6s2sv00015h3pge3bwnb8', // Comment j'ai surmonté le harcèlement
       },
       MOYEN: {
         content:
           "Je comprends que ça puisse être difficile. Tu n'es pas seul·e, d'autres enfants sont passés par là. Veux-tu voir quelques conseils pratiques ?",
-        resourceId: 'res_conseils_pratiques_01',
+        resourceId: 'cmgb6s2tv00075h3p2wnewbk4', // Techniques de relaxation
       },
       ELEVE: {
         content:
@@ -176,8 +176,8 @@ export class ChatService {
       },
       CRITIQUE: {
         content:
-          "Je vois que tu traverses une période très difficile. L'école va être informée pour t'aider rapidement. En attendant, je suis là pour toi. Veux-tu que je te montre une ressource d'urgence ?",
-        resourceId: 'res_urgence_01',
+          "Coucou 😊\nTu veux qu'on prenne un petit moment pour discuter ?\nJe suis là pour toi.\nDis-moi, comment s'est passée ta journée aujourd'hui ?",
+        resourceId: 'cmgb6s2u7000b5h3p6pu35x7w', // Reconnaître les signes de dépression
       },
     };
 
@@ -189,12 +189,12 @@ export class ChatService {
    */
   private getResourceByCategory(category?: string): string {
     const resources = {
-      harassment: 'res_harassment_01',
-      violence: 'res_violence_01',
-      isolation: 'res_isolation_01',
-      anxiety: 'res_anxiety_01',
-      depression: 'res_depression_01',
-      default: 'res_support_general_01',
+      bullying: 'cmgb6s2sv00015h3pge3bwnb8', // Comment j'ai surmonté le harcèlement
+      emotions: 'cmgb6s2ti00035h3p2oipdpny', // Gérer ses émotions au quotidien
+      friendship: 'cmgb6s2tn00055h3pqzl4tz9l', // Les vrais amis
+      'self-esteem': 'cmgb6s2u000095h3p8q10n3f8', // Construire sa confiance en soi
+      help: 'cmgb6s2u7000b5h3p6pu35x7w', // Reconnaître les signes de dépression
+      default: 'cmgb6s2ti00035h3p2oipdpny', // Gérer ses émotions au quotidien
     };
 
     return resources[category as keyof typeof resources] || resources.default;

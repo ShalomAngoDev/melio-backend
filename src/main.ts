@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import helmet from 'helmet';
 import * as compression from 'compression';
 import { AppModule } from './app.module';
 import { execSync } from 'child_process';
+import { setupSecurity } from './config/security.config';
 
 async function bootstrap() {
   console.log('🚀 Starting Melio Backend...');
@@ -37,32 +37,46 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Security
-  app.use(helmet());
+  // Configuration de sécurité centralisée
+  setupSecurity(app);
   app.use(compression());
 
-  // CORS
+  // CORS sécurisé
   const corsOrigins = configService.get('CORS_ORIGINS', '').split(',');
+  const productionOrigins = [
+    'https://www.melio-soutien.net',
+    'https://melio-soutien.net',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:8080',
+  ];
+  
+  const allowedOrigins = [...corsOrigins, ...productionOrigins].filter(Boolean);
+  
   app.enableCors({
-    origin: corsOrigins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      if (configService.get('NODE_ENV') === 'production') {
+        logger.warn(`⚠️ Tentative d'accès CORS refusée depuis: ${origin}`);
+        return callback(new Error('Not allowed by CORS'), false);
+      }
+      
+      return callback(null, true);
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
   // Global prefix
   const apiPrefix = configService.get('API_PREFIX', 'api/v1');
   app.setGlobalPrefix(apiPrefix);
-
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
 
   // Swagger documentation
   const config = new DocumentBuilder()

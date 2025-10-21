@@ -571,15 +571,21 @@ export class AdminService {
       data: {
         email: agentData.email,
         password: hashedPassword,
-        schoolId: schoolId,
+        firstName: (agentData as any).firstName || null,
+        lastName: (agentData as any).lastName || null,
         role: 'ROLE_AGENT',
+        schools: {
+          create: {
+            schoolId: schoolId,
+          },
+        },
       },
     });
 
     return {
       id: agent.id,
       email: agent.email,
-      schoolId: agent.schoolId,
+      schoolId: schoolId, // Renvoyer l'ID de l'école pour compatibilité
       role: agent.role,
       createdAt: agent.createdAt,
     };
@@ -595,39 +601,305 @@ export class AdminService {
       throw new NotFoundException('École non trouvée');
     }
 
-    // Récupérer les agents de l'école
-    const agents = await this.prisma.agentUser.findMany({
+    // Récupérer les agents de l'école via la table de liaison
+    const agentSchools = await this.prisma.agentSchool.findMany({
       where: { schoolId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        agent: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     });
 
-    return agents;
+    return agentSchools.map(as => as.agent);
+  }
+
+  /**
+   * Assigner un agent existant à une école (V2)
+   */
+  async assignExistingAgentToSchool(schoolId: string, agentId: string) {
+    // Vérifier que l'école existe
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
+
+    if (!school) {
+      throw new NotFoundException('École non trouvée');
+    }
+
+    // Vérifier que l'agent existe
+    const agent = await this.prisma.agentUser.findUnique({
+      where: { id: agentId },
+    });
+
+    if (!agent) {
+      throw new NotFoundException('Agent non trouvé');
+    }
+
+    // Vérifier si la liaison existe déjà
+    const existing = await this.prisma.agentSchool.findUnique({
+      where: {
+        agentId_schoolId: {
+          agentId,
+          schoolId,
+        },
+      },
+    });
+
+    if (existing) {
+      throw new Error('Cet agent est déjà assigné à cette école');
+    }
+
+    // Créer la liaison
+    await this.prisma.agentSchool.create({
+      data: {
+        agentId,
+        schoolId,
+      },
+    });
+
+    return { 
+      message: 'Agent assigné à l\'école avec succès',
+      agent: {
+        id: agent.id,
+        email: agent.email,
+        firstName: agent.firstName,
+        lastName: agent.lastName,
+      },
+    };
   }
 
   async removeAgentFromSchool(schoolId: string, agentId: string) {
-    // Vérifier que l'agent existe et appartient à l'école
-    const agent = await this.prisma.agentUser.findFirst({
+    // Vérifier que l'agent est lié à cette école
+    const agentSchool = await this.prisma.agentSchool.findUnique({
       where: {
-        id: agentId,
-        schoolId: schoolId,
+        agentId_schoolId: {
+          agentId: agentId,
+          schoolId: schoolId,
+        },
+      },
+    });
+
+    if (!agentSchool) {
+      throw new NotFoundException('Agent non trouvé dans cette école');
+    }
+
+    // Supprimer uniquement la liaison (pas l'agent lui-même)
+    // L'agent peut être lié à d'autres écoles
+    await this.prisma.agentSchool.delete({
+      where: {
+        agentId_schoolId: {
+          agentId: agentId,
+          schoolId: schoolId,
+        },
+      },
+    });
+
+    return { message: 'Agent retiré de l\'école avec succès' };
+  }
+
+  // ===== V2: GESTION GLOBALE DES AGENTS =====
+
+  /**
+   * Récupérer tous les agents avec leurs écoles
+   */
+  async getAllAgents() {
+    const agents = await this.prisma.agentUser.findMany({
+      include: {
+        schools: {
+          include: {
+            school: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                city: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return agents.map(agent => ({
+      id: agent.id,
+      email: agent.email,
+      firstName: agent.firstName,
+      lastName: agent.lastName,
+      role: agent.role,
+      schools: agent.schools.map(as => as.school),
+      createdAt: agent.createdAt,
+    }));
+  }
+
+  /**
+   * Créer un agent et l'attribuer à plusieurs écoles
+   */
+  async createGlobalAgent(agentData: {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    schoolIds: string[];
+  }) {
+    // Vérifier que l'email n'existe pas déjà
+    const existingAgent = await this.prisma.agentUser.findUnique({
+      where: { email: agentData.email },
+    });
+
+    if (existingAgent) {
+      throw new Error('Un agent avec cet email existe déjà');
+    }
+
+    // Vérifier que toutes les écoles existent
+    const schools = await this.prisma.school.findMany({
+      where: {
+        id: {
+          in: agentData.schoolIds,
+        },
+      },
+    });
+
+    if (schools.length !== agentData.schoolIds.length) {
+      throw new Error('Certaines écoles sont invalides');
+    }
+
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(agentData.password, 12);
+
+    // Créer l'agent avec les liaisons aux écoles
+    const agent = await this.prisma.agentUser.create({
+      data: {
+        email: agentData.email,
+        password: hashedPassword,
+        firstName: agentData.firstName,
+        lastName: agentData.lastName,
+        role: 'ROLE_AGENT',
+        schools: {
+          create: agentData.schoolIds.map(schoolId => ({
+            schoolId,
+          })),
+        },
+      },
+      include: {
+        schools: {
+          include: {
+            school: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: agent.id,
+      email: agent.email,
+      firstName: agent.firstName,
+      lastName: agent.lastName,
+      schools: agent.schools.map(as => as.school),
+      createdAt: agent.createdAt,
+    };
+  }
+
+  /**
+   * Modifier un agent (nom, prénom et écoles)
+   */
+  async updateAgent(agentId: string, updateData: {
+    firstName?: string;
+    lastName?: string;
+    schoolIds?: string[];
+  }) {
+    // Vérifier que l'agent existe
+    const agent = await this.prisma.agentUser.findUnique({
+      where: { id: agentId },
+    });
+
+    if (!agent) {
+      throw new NotFoundException('Agent non trouvé');
+    }
+
+    // Mettre à jour les informations de base
+    await this.prisma.agentUser.update({
+      where: { id: agentId },
+      data: {
+        firstName: updateData.firstName,
+        lastName: updateData.lastName,
+      },
+    });
+
+    // Mettre à jour les écoles si fourni
+    if (updateData.schoolIds) {
+      // Supprimer toutes les liaisons existantes
+      await this.prisma.agentSchool.deleteMany({
+        where: { agentId },
+      });
+
+      // Créer les nouvelles liaisons
+      if (updateData.schoolIds.length > 0) {
+        await this.prisma.agentSchool.createMany({
+          data: updateData.schoolIds.map(schoolId => ({
+            agentId,
+            schoolId,
+          })),
+        });
+      }
+    }
+
+    // Récupérer l'agent avec ses écoles
+    const agentWithSchools = await this.prisma.agentUser.findUnique({
+      where: { id: agentId },
+      include: {
+        schools: {
+          include: {
+            school: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: agentWithSchools.id,
+      email: agentWithSchools.email,
+      firstName: agentWithSchools.firstName,
+      lastName: agentWithSchools.lastName,
+      schools: agentWithSchools.schools.map(as => as.school),
+    };
+  }
+
+  /**
+   * Supprimer un agent complètement
+   */
+  async deleteAgent(agentId: string) {
+    // Vérifier que l'agent existe
+    const agent = await this.prisma.agentUser.findUnique({
+      where: { id: agentId },
+      include: {
+        schools: true,
       },
     });
 
     if (!agent) {
-      throw new NotFoundException('Agent non trouvé dans cette école');
+      throw new NotFoundException('Agent non trouvé');
     }
 
-    // Supprimer l'agent
+    // Supprimer l'agent (les liaisons agent_schools seront supprimées en cascade)
     await this.prisma.agentUser.delete({
       where: { id: agentId },
     });
 
-    return { message: 'Agent supprimé avec succès' };
+    return { 
+      message: 'Agent supprimé avec succès',
+      schoolsAffected: agent.schools.length,
+    };
   }
 }

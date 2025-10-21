@@ -17,7 +17,13 @@ export class AlertsController {
 
   @Get()
   @Roles(Role.AGENT)
-  @ApiOperation({ summary: "Récupérer les alertes de l'établissement" })
+  @ApiOperation({ summary: "Récupérer les alertes de l'établissement (V2: support multi-écoles)" })
+  @ApiQuery({
+    name: 'schoolId',
+    required: false,
+    type: String,
+    description: 'ID de l\'école (V2: requis pour agents multi-écoles)',
+  })
   @ApiQuery({
     name: 'status',
     required: false,
@@ -44,16 +50,25 @@ export class AlertsController {
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
   async getSchoolAlerts(
     @Request() req: any,
+    @Query('schoolId') querySchoolId?: string,
     @Query('status') status?: string,
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ): Promise<AlertResponseDto[]> {
-    return this.alertsService.getSchoolAlerts(req.user.schoolId, status, limit || 50, offset || 0);
+    // V2: Utiliser querySchoolId si fourni, sinon fallback sur req.user.schoolId (compatibilité V1)
+    const schoolId = querySchoolId || req.user.schoolId;
+    return this.alertsService.getSchoolAlerts(schoolId, status, limit || 50, offset || 0);
   }
 
   @Get('stats')
   @Roles(Role.AGENT)
-  @ApiOperation({ summary: 'Récupérer les statistiques des alertes' })
+  @ApiOperation({ summary: 'Récupérer les statistiques des alertes (V2: support multi-écoles)' })
+  @ApiQuery({
+    name: 'schoolId',
+    required: false,
+    type: String,
+    description: 'ID de l\'école (V2: requis pour agents multi-écoles)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Statistiques des alertes',
@@ -76,8 +91,53 @@ export class AlertsController {
     },
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
-  async getAlertStats(@Request() req: any) {
-    return this.alertsService.getAlertStats(req.user.schoolId);
+  async getAlertStats(
+    @Request() req: any,
+    @Query('schoolId') querySchoolId?: string,
+  ) {
+    // V2: Utiliser querySchoolId si fourni, sinon fallback sur req.user.schoolId
+    const schoolId = querySchoolId || req.user.schoolId;
+    return this.alertsService.getAlertStats(schoolId);
+  }
+
+  @Get('refresh')
+  @Roles(Role.AGENT)
+  @ApiOperation({ summary: 'Forcer le rechargement des alertes (vide le cache)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Cache vidé avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        timestamp: { type: 'string' },
+        schoolId: { type: 'string' }
+      }
+    }
+  })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
+  async refreshAlerts(@Request() req: any) {
+    return this.alertsService.refreshAlerts(req.user.schoolId);
+  }
+
+  @Get('debug/invalid-ids')
+  @Roles(Role.AGENT)
+  @ApiOperation({ summary: 'Déboguer les IDs d\'alertes invalides' })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des IDs invalides trouvés',
+    schema: {
+      type: 'object',
+      properties: {
+        invalidIds: { type: 'array', items: { type: 'string' } },
+        validIds: { type: 'array', items: { type: 'string' } },
+        total: { type: 'number' }
+      }
+    }
+  })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
+  async debugInvalidIds(@Request() req: any) {
+    return this.alertsService.debugInvalidIds(req.user.schoolId);
   }
 
   @Get(':id')
@@ -152,5 +212,29 @@ export class AlertsController {
     @Request() req: any,
   ): Promise<AlertCommentResponseDto[]> {
     return this.alertsService.getAlertComments(alertId, req.user.schoolId);
+  }
+
+  @Get('validate/:id')
+  @Roles(Role.AGENT)
+  @ApiOperation({ summary: "Valider l'existence d'une alerte" })
+  @ApiResponse({
+    status: 200,
+    description: "Alerte valide",
+    schema: {
+      type: 'object',
+      properties: {
+        exists: { type: 'boolean' },
+        alertId: { type: 'string' },
+        schoolId: { type: 'string' },
+        status: { type: 'string' }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Alerte non trouvée' })
+  async validateAlert(
+    @Param('id') alertId: string,
+    @Request() req: any,
+  ) {
+    return this.alertsService.validateAlert(alertId, req.user.schoolId);
   }
 }

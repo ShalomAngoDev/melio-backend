@@ -14,6 +14,17 @@ export class StudentDto {
   className: string;
 }
 
+export class SchoolInfo {
+  @ApiProperty({ description: "ID de l'école" })
+  id: string;
+
+  @ApiProperty({ description: "Code de l'école" })
+  code: string;
+
+  @ApiProperty({ description: "Nom de l'école" })
+  name: string;
+}
+
 export class AgentDto {
   @ApiProperty({ description: "ID de l'agent" })
   id: string;
@@ -21,11 +32,17 @@ export class AgentDto {
   @ApiProperty({ description: 'Email' })
   email: string;
 
-  @ApiProperty({ description: "ID de l'établissement" })
-  schoolId: string;
+  @ApiProperty({ description: "ID de l'établissement (V1 - deprecated)", required: false })
+  schoolId?: string;
 
   @ApiProperty({ description: 'Rôle' })
   role: string;
+
+  @ApiProperty({ description: 'Liste des écoles gérées par cet agent (V2)', type: [SchoolInfo], required: false })
+  schools?: SchoolInfo[];
+
+  @ApiProperty({ description: "ID de l'école actuellement sélectionnée (V2)", required: false })
+  currentSchoolId?: string;
 }
 
 export class AdminDto {

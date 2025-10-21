@@ -55,14 +55,34 @@ export class JournalService {
 
     // V2: Gérer les tags si fournis
     if (createJournalEntryDto.tags && createJournalEntryDto.tags.length > 0) {
-      const tagConnections = createJournalEntryDto.tags.map(tagId => ({
-        journalEntryId: journalEntry.id,
-        tagId: tagId,
-      }));
-
-      await this.prisma.journalEntryTag.createMany({
-        data: tagConnections,
+      this.logger.log(`Tags fournis pour nouvelle entrée: ${JSON.stringify(createJournalEntryDto.tags)}`);
+      
+      // Valider que tous les tags existent
+      const validTags = await this.prisma.tag.findMany({
+        where: {
+          id: {
+            in: createJournalEntryDto.tags,
+          },
+        },
+        select: { id: true },
       });
+
+      const validTagIds = validTags.map(tag => tag.id);
+      this.logger.log(`Tags valides trouvés: ${JSON.stringify(validTagIds)}`);
+
+      if (validTagIds.length > 0) {
+        const tagConnections = validTagIds.map(tagId => ({
+          journalEntryId: journalEntry.id,
+          tagId: tagId,
+        }));
+
+        await this.prisma.journalEntryTag.createMany({
+          data: tagConnections,
+        });
+        this.logger.log(`${validTagIds.length} tag(s) ajouté(s) à l'entrée ${journalEntry.id}`);
+      } else {
+        this.logger.warn(`Aucun tag valide fourni. IDs reçus: ${JSON.stringify(createJournalEntryDto.tags)}`);
+      }
     }
 
     // Récupérer les données de récurrence (mémoire 14 jours)
@@ -76,7 +96,7 @@ export class JournalService {
     );
 
     // Mettre à jour l'entrée avec les résultats de l'IA
-    const updatedEntry = await this.prisma.journalEntry.update({
+    await this.prisma.journalEntry.update({
       where: { id: journalEntry.id },
       data: {
         aiRiskScore: aiResult.riskScore,
@@ -120,7 +140,19 @@ export class JournalService {
       // Ne pas faire échouer la création si la gamification échoue
     }
 
-    return this.mapToResponseDto(updatedEntry);
+    // Récupérer l'entrée avec les tags pour le retour
+    const entryWithTags = await this.prisma.journalEntry.findUnique({
+      where: { id: journalEntry.id },
+      include: {
+        tags: {
+          include: {
+            tag: true
+          }
+        }
+      }
+    });
+
+    return this.mapToResponseDto(entryWithTags);
   }
 
   /**
@@ -218,7 +250,7 @@ export class JournalService {
     }
 
     // Mettre à jour l'entrée
-    const updatedEntry = await this.prisma.journalEntry.update({
+    await this.prisma.journalEntry.update({
       where: { id: entryId },
       data: {
         mood: updateJournalEntryDto.mood,
@@ -231,26 +263,96 @@ export class JournalService {
     });
 
     // V2: Gérer les tags si fournis
-    if (updateJournalEntryDto.tags && updateJournalEntryDto.tags.length > 0) {
+    if (updateJournalEntryDto.tags !== undefined) {
       // Supprimer les anciens tags
       await this.prisma.journalEntryTag.deleteMany({
         where: { journalEntryId: entryId },
       });
 
-      // Ajouter les nouveaux tags
-      const tagConnections = updateJournalEntryDto.tags.map(tagId => ({
-        journalEntryId: entryId,
-        tagId: tagId,
-      }));
+      // Ajouter les nouveaux tags s'il y en a
+      if (updateJournalEntryDto.tags.length > 0) {
+        this.logger.log(`Tags fournis pour l'entrée ${entryId}: ${JSON.stringify(updateJournalEntryDto.tags)}`);
+        
+        // Valider que tous les tags existent
+        const validTags = await this.prisma.tag.findMany({
+          where: {
+            id: {
+              in: updateJournalEntryDto.tags,
+            },
+          },
+          select: { id: true },
+        });
 
-      await this.prisma.journalEntryTag.createMany({
-        data: tagConnections,
-      });
+        const validTagIds = validTags.map(tag => tag.id);
+        this.logger.log(`Tags valides trouvés: ${JSON.stringify(validTagIds)}`);
+
+        if (validTagIds.length > 0) {
+          const tagConnections = validTagIds.map(tagId => ({
+            journalEntryId: entryId,
+            tagId: tagId,
+          }));
+
+          await this.prisma.journalEntryTag.createMany({
+            data: tagConnections,
+          });
+          this.logger.log(`${validTagIds.length} tag(s) ajouté(s) à l'entrée ${entryId}`);
+        } else {
+          this.logger.warn(`Aucun tag valide fourni pour l'entrée ${entryId}. IDs reçus: ${JSON.stringify(updateJournalEntryDto.tags)}`);
+        }
+      }
     }
 
     this.logger.log(`Journal entry updated: ${entryId}`);
 
-    return this.mapToResponseDto(updatedEntry);
+    // Récupérer l'entrée avec les tags pour le retour
+    const entryWithTags = await this.prisma.journalEntry.findUnique({
+      where: { id: entryId },
+      include: {
+        tags: {
+          include: {
+            tag: true
+          }
+        }
+      }
+    });
+
+    return this.mapToResponseDto(entryWithTags);
+  }
+
+  /**
+   * Supprime une entrée de journal
+   */
+  async deleteJournalEntry(
+    entryId: string,
+    studentId: string,
+    schoolId: string,
+  ): Promise<void> {
+    // Vérifier que l'entrée existe et appartient à l'élève
+    const existingEntry = await this.prisma.journalEntry.findFirst({
+      where: {
+        id: entryId,
+        studentId,
+        student: {
+          schoolId,
+        },
+      },
+    });
+
+    if (!existingEntry) {
+      throw new NotFoundException('Entrée de journal non trouvée');
+    }
+
+    // Supprimer les tags associés
+    await this.prisma.journalEntryTag.deleteMany({
+      where: { journalEntryId: entryId },
+    });
+
+    // Supprimer l'entrée
+    await this.prisma.journalEntry.delete({
+      where: { id: entryId },
+    });
+
+    this.logger.log(`Journal entry deleted: ${entryId}`);
   }
 
   /**
@@ -271,6 +373,12 @@ export class JournalService {
       return;
     }
 
+    // Récupérer l'humeur de l'entrée du journal
+    const journalEntry = await this.prisma.journalEntry.findUnique({
+      where: { id: sourceId },
+      select: { mood: true },
+    });
+
     await this.prisma.alert.create({
       data: {
         schoolId,
@@ -279,7 +387,7 @@ export class JournalService {
         sourceType: 'JOURNAL',
         riskLevel: aiResult.riskLevel,
         riskScore: aiResult.riskScore,
-        childMood: aiResult.mood || 'NEUTRE',
+        childMood: journalEntry?.mood || 'NEUTRE',
         aiSummary: aiResult.summary,
         aiAdvice: aiResult.advice,
         status: 'NOUVELLE',

@@ -7,15 +7,25 @@ async function seedComplete() {
   console.log('🌱 Début du seeding complet...');
   
   try {
-    // Nettoyer la base de données d'abord
+    // Nettoyer la base de données d'abord (dans le bon ordre pour les clés étrangères)
     console.log('🧹 Nettoyage de la base de données...');
+    
+    await prisma.chatMessage.deleteMany();
     await prisma.chatbotMessage.deleteMany();
+    await prisma.journalEntryTag.deleteMany();
     await prisma.journalEntry.deleteMany();
+    await prisma.alertComment.deleteMany();
     await prisma.alert.deleteMany();
     await prisma.report.deleteMany();
+    await prisma.studentAchievement.deleteMany();
+    await prisma.studentResourceView.deleteMany();
+    await prisma.studentResourceRating.deleteMany();
+    await prisma.studentResourceFavorite.deleteMany();
     await prisma.student.deleteMany();
+    // agent_schools sera supprimé automatiquement par CASCADE quand on supprime les agents
     await prisma.agentUser.deleteMany();
     await prisma.adminUser.deleteMany();
+    await prisma.libraryResource.deleteMany();
     await prisma.school.deleteMany();
     await prisma.tag.deleteMany();
     await prisma.achievement.deleteMany();
@@ -116,7 +126,7 @@ async function seedComplete() {
     }
     console.log('✅ 10 écoles créées');
 
-    // 5. Créer les agents
+    // 5. Créer les agents (V2: multi-écoles)
     console.log('👨‍💼 Création des agents...');
     const agents = [];
     for (const school of schools) {
@@ -125,15 +135,162 @@ async function seedComplete() {
         data: {
           email: `agent@${school.code.toLowerCase()}.fr`,
           password: hashedPassword,
-          schoolId: school.id,
+          firstName: 'Agent',
+          lastName: school.name.split(' ')[1] || 'Social',
           role: 'ROLE_AGENT',
+          schools: {
+            create: {
+              schoolId: school.id,
+            },
+          },
         },
       });
       agents.push(agent);
     }
     console.log('✅ 10 agents créés');
 
-    // 6. Créer les élèves
+    // 6. Créer les ressources de bibliothèque
+    console.log('📚 Création des ressources de bibliothèque...');
+    const libraryResources = [
+      {
+        title: 'Comment j\'ai surmonté le harcèlement',
+        type: 'testimony',
+        category: 'bullying',
+        description: 'Témoignage de Sarah, 16 ans, qui partage son expérience et comment elle a retrouvé confiance en elle.',
+        content: 'Je m\'appelle Sarah et j\'ai 16 ans. Il y a deux ans, j\'étais victime de harcèlement à l\'école...',
+        duration: '8 min',
+        author: 'Sarah M.',
+        rating: 4.8,
+        views: 1247,
+        thumbnail: 'https://images.pexels.com/photos/3182834/pexels-photo-3182834.jpeg?auto=compress&cs=tinysrgb&w=400',
+        isActive: true,
+        isFeatured: true,
+        tags: ['harcèlement', 'témoignage', 'confiance', 'adolescence'],
+        metadata: JSON.stringify({ difficulty: 'beginner', language: 'fr', ageRange: '12-18' })
+      },
+      {
+        title: 'Gérer ses émotions au quotidien',
+        type: 'video',
+        category: 'emotions',
+        description: 'Techniques simples pour comprendre et gérer tes émotions, expliquées par une psychologue.',
+        content: 'https://example.com/video/gerer-emotions',
+        duration: '12 min',
+        author: 'Dr. Claire Dubois',
+        rating: 4.9,
+        views: 2156,
+        thumbnail: 'https://images.pexels.com/photos/3808904/pexels-photo-3808904.jpeg?auto=compress&cs=tinysrgb&w=400',
+        isActive: true,
+        isFeatured: true,
+        tags: ['émotions', 'psychologie', 'gestion', 'quotidien'],
+        metadata: JSON.stringify({ difficulty: 'intermediate', language: 'fr', ageRange: '12-18', videoUrl: 'https://example.com/video/gerer-emotions' })
+      },
+      {
+        title: 'Les vrais amis',
+        type: 'book',
+        category: 'friendship',
+        description: 'Extrait du livre "Adolescence et amitié" - Comment reconnaître les vraies amitiés.',
+        content: 'L\'amitié à l\'adolescence est un pilier fondamental de notre développement...',
+        author: 'Marie Rousseau',
+        rating: 4.6,
+        views: 892,
+        thumbnail: 'https://images.pexels.com/photos/3182834/pexels-photo-3182834.jpeg?auto=compress&cs=tinysrgb&w=400',
+        isActive: true,
+        isFeatured: false,
+        tags: ['amitié', 'relations', 'adolescence', 'livre'],
+        metadata: JSON.stringify({ difficulty: 'beginner', language: 'fr', ageRange: '12-18', isbn: '978-2-123456-78-9' })
+      },
+      {
+        title: 'Techniques de relaxation',
+        type: 'article',
+        category: 'emotions',
+        description: '5 exercices de respiration pour gérer le stress et l\'anxiété.',
+        content: 'Voici 5 techniques de relaxation que tu peux pratiquer n\'importe où...',
+        duration: '5 min',
+        author: 'Dr. Pierre Martin',
+        rating: 4.7,
+        views: 1563,
+        thumbnail: 'https://images.pexels.com/photos/3808904/pexels-photo-3808904.jpeg?auto=compress&cs=tinysrgb&w=400',
+        isActive: true,
+        isFeatured: false,
+        tags: ['relaxation', 'stress', 'anxiété', 'respiration'],
+        metadata: JSON.stringify({ difficulty: 'beginner', language: 'fr', ageRange: '12-18', exercises: 5 })
+      },
+      {
+        title: 'Construire sa confiance en soi',
+        type: 'video',
+        category: 'self-esteem',
+        description: 'Exercices pratiques pour développer une image positive de soi.',
+        content: 'https://example.com/video/confiance-soi',
+        duration: '15 min',
+        author: 'Sophie Laurent',
+        rating: 4.9,
+        views: 1892,
+        thumbnail: 'https://images.pexels.com/photos/3182834/pexels-photo-3182834.jpeg?auto=compress&cs=tinysrgb&w=400',
+        isActive: true,
+        isFeatured: true,
+        tags: ['confiance', 'estime', 'développement', 'exercices'],
+        metadata: JSON.stringify({ difficulty: 'intermediate', language: 'fr', ageRange: '12-18', videoUrl: 'https://example.com/video/confiance-soi' })
+      },
+      {
+        title: 'Reconnaître les signes de dépression',
+        type: 'article',
+        category: 'help',
+        description: 'Guide pour identifier les signes de dépression chez les adolescents.',
+        content: 'La dépression chez les adolescents peut se manifester de différentes façons...',
+        author: 'Dr. Anne Moreau',
+        rating: 4.5,
+        views: 2341,
+        thumbnail: 'https://images.pexels.com/photos/3808904/pexels-photo-3808904.jpeg?auto=compress&cs=tinysrgb&w=400',
+        isActive: true,
+        isFeatured: false,
+        tags: ['dépression', 'signes', 'aide', 'santé mentale'],
+        metadata: JSON.stringify({ difficulty: 'intermediate', language: 'fr', ageRange: '12-18', warning: 'Contenu sensible' })
+      },
+      {
+        title: 'Gérer les conflits entre amis',
+        type: 'video',
+        category: 'friendship',
+        description: 'Techniques de communication pour résoudre les disputes entre amis.',
+        content: 'https://example.com/video/conflits-amis',
+        duration: '10 min',
+        author: 'Thomas Bernard',
+        rating: 4.4,
+        views: 987,
+        thumbnail: 'https://images.pexels.com/photos/3182834/pexels-photo-3182834.jpeg?auto=compress&cs=tinysrgb&w=400',
+        isActive: true,
+        isFeatured: false,
+        tags: ['conflits', 'communication', 'amitié', 'résolution'],
+        metadata: JSON.stringify({ difficulty: 'beginner', language: 'fr', ageRange: '12-18', videoUrl: 'https://example.com/video/conflits-amis' })
+      },
+      {
+        title: 'Mon parcours de reconstruction',
+        type: 'testimony',
+        category: 'self-esteem',
+        description: 'Témoignage de Lucas sur sa reconstruction après des années de harcèlement.',
+        content: 'Bonjour, je m\'appelle Lucas et j\'ai 17 ans. Pendant 3 ans, j\'ai été harcelé...',
+        duration: '6 min',
+        author: 'Lucas P.',
+        rating: 4.8,
+        views: 1456,
+        thumbnail: 'https://images.pexels.com/photos/3182834/pexels-photo-3182834.jpeg?auto=compress&cs=tinysrgb&w=400',
+        isActive: true,
+        isFeatured: true,
+        tags: ['reconstruction', 'harcèlement', 'témoignage', 'espoir'],
+        metadata: JSON.stringify({ difficulty: 'beginner', language: 'fr', ageRange: '12-18', triggerWarning: 'Harcèlement' })
+      }
+    ];
+
+    for (const resourceData of libraryResources) {
+      await prisma.libraryResource.create({
+        data: {
+          ...resourceData,
+          schoolId: schools[0].id, // Associer à la première école
+        },
+      });
+    }
+    console.log('✅ 8 ressources de bibliothèque créées');
+
+    // 7. Créer les élèves
     console.log('👦👧 Création des élèves...');
     const firstNames = [
       'Emma', 'Lucas', 'Chloé', 'Nathan', 'Léa', 'Hugo', 'Manon', 'Gabriel', 'Camille', 'Raphaël',
@@ -346,10 +503,11 @@ async function seedComplete() {
     console.log('🎉 Seeding complet terminé avec succès !');
     console.log('📊 Résumé :');
     console.log(`   🏫 Écoles : ${schools.length}`);
-    console.log(`   👨‍💼 Agents : ${agents.length}`);
+    console.log(`   👨‍💼 Agents : ${agents.length} (V2: multi-écoles)`);
     console.log(`   👦👧 Élèves : ${students.length}`);
     console.log(`   🏷️ Tags : ${tags.length}`);
     console.log(`   🏆 Achievements : ${achievements.length}`);
+    console.log(`   📚 Ressources bibliothèque : 8`);
     console.log(`   🚨 Alertes : 200`);
     console.log(`   📝 Signalements : 100`);
     console.log(`   📖 Entrées journal : ~50`);
@@ -358,6 +516,13 @@ async function seedComplete() {
     console.log('🔑 Comptes de test :');
     console.log('   Admin : admin@melio.app / admin123');
     console.log('   Agents : agent@school001.fr, agent@school002.fr, etc. / agent123');
+    console.log('   Agent V2 : agent.test@melio.app / MelioTest2024!');
+    console.log('');
+    console.log('✨ Nouvelles fonctionnalités V2 :');
+    console.log('   - Authentification unifiée (email + password uniquement)');
+    console.log('   - Agents peuvent gérer plusieurs écoles');
+    console.log('   - Tags dynamiques pour le journal');
+    console.log('   - Ressources de bibliothèque enrichies');
 
   } catch (error) {
     console.error('❌ Erreur lors du seeding:', error);

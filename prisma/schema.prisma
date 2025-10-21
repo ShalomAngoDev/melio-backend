@@ -46,10 +46,12 @@ model School {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  agents     AgentUser[]
+  // V2: Relations many-to-many avec agents
+  agents     AgentSchool[]
   students   Student[]
   alerts     Alert[]
   reports    Report[]
+  libraryResources LibraryResource[]
 
   @@map("schools")
 }
@@ -83,6 +85,9 @@ model Student {
   chatMessages   ChatMessage[]
   reports        Report[]
   achievements   StudentAchievement[]
+  resourceViews    StudentResourceView[]
+  resourceRatings  StudentResourceRating[]
+  resourceFavorites StudentResourceFavorite[]
 
   @@index([schoolId, className])
   @@unique([schoolId, uniqueId]) // unicité au sein de l'établissement
@@ -91,13 +96,16 @@ model Student {
 
 model AgentUser {
   id        String   @id @default(cuid())
-  schoolId  String
-  school    School   @relation(fields: [schoolId], references: [id])
   email     String   @unique
   password  String   // hashé avec Argon2
+  firstName String?  @map("first_name") // Prénom de l'agent
+  lastName  String?  @map("last_name")  // Nom de l'agent
   role      String   @default("ROLE_AGENT")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // V2: Un agent peut gérer plusieurs écoles
+  schools   AgentSchool[]
 
   @@map("agent_users")
 }
@@ -111,6 +119,18 @@ model AdminUser {
   updatedAt DateTime @updatedAt
 
   @@map("admin_users")
+}
+
+// V2: Table de liaison Agent ↔ École (many-to-many)
+model AgentSchool {
+  agentId   String    @map("agent_id")
+  agent     AgentUser @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  schoolId  String    @map("school_id")
+  school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@id([agentId, schoolId])
+  @@map("agent_schools")
 }
 
 // ===== JOURNAL INTIME & ANALYSE IA =====
@@ -295,4 +315,86 @@ model StudentAchievement {
   @@unique([studentId, achievementId])
   @@index([studentId])
   @@map("student_achievements")
+}
+
+// ===== V2: LIBRARY RESOURCES =====
+
+model LibraryResource {
+  id          String   @id @default(cuid())
+  title       String
+  type        String   // video | testimony | book | article
+  category    String   // bullying | emotions | friendship | self-esteem | help
+  description String
+  content     String?  // Contenu principal (texte, URL, etc.)
+  duration    String?  // Durée pour les vidéos (ex: "12 min")
+  author      String?  // Auteur de la ressource
+  rating      Float    @default(0.0) // Note moyenne (0-5)
+  views       Int      @default(0)   // Nombre de vues
+  thumbnail   String?  // URL de l'image de couverture
+  isActive    Boolean  @default(true) // Ressource active/inactive
+  isFeatured  Boolean  @default(false) // Ressource mise en avant
+  tags        String[] // Tags pour la recherche
+  metadata    String?  // Données JSON supplémentaires
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  schoolId    String?  @map("school_id")
+  school      School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  
+  // Interactions des étudiants
+  studentViews    StudentResourceView[]
+  studentRatings  StudentResourceRating[]
+  studentFavorites StudentResourceFavorite[]
+
+  @@index([category])
+  @@index([type])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([schoolId])
+  @@map("library_resources")
+}
+
+model StudentResourceView {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resourceId String   @map("resource_id")
+  resource   LibraryResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  viewedAt   DateTime @default(now()) @map("viewed_at")
+  
+  @@unique([studentId, resourceId])
+  @@index([studentId])
+  @@index([resourceId])
+  @@map("student_resource_views")
+}
+
+model StudentResourceRating {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resourceId String   @map("resource_id")
+  resource   LibraryResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  rating     Int      // Note de 1 à 5
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  @@unique([studentId, resourceId])
+  @@index([studentId])
+  @@index([resourceId])
+  @@map("student_resource_ratings")
+}
+
+model StudentResourceFavorite {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resourceId String   @map("resource_id")
+  resource   LibraryResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  favoritedAt DateTime @default(now()) @map("favorited_at")
+  
+  @@unique([studentId, resourceId])
+  @@index([studentId])
+  @@index([resourceId])
+  @@map("student_resource_favorites")
 }

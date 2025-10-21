@@ -167,6 +167,19 @@ export class AdminController {
     return this.adminService.getSchoolAgents(schoolId);
   }
 
+  @Post('schools/:schoolId/agents/assign')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: "Assigner un agent existant à une école (V2)" })
+  @ApiResponse({ status: 201, description: 'Agent assigné avec succès' })
+  @ApiResponse({ status: 404, description: 'Agent ou école non trouvé' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async assignAgentToSchool(
+    @Param('schoolId') schoolId: string,
+    @Body() data: { agentId: string },
+  ) {
+    return this.adminService.assignExistingAgentToSchool(schoolId, data.agentId);
+  }
+
   @Delete('schools/:schoolId/agents/:agentId')
   @Roles(Role.ADMIN_MELIO)
   @ApiOperation({ summary: "Supprimer un agent d'une école" })
@@ -178,5 +191,61 @@ export class AdminController {
     @Param('agentId') agentId: string,
   ) {
     return this.adminService.removeAgentFromSchool(schoolId, agentId);
+  }
+
+  // ===== V2: GESTION GLOBALE DES AGENTS =====
+
+  @Get('agents')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: 'Récupérer tous les agents avec leurs écoles (V2)' })
+  @ApiResponse({ status: 200, description: 'Liste de tous les agents' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async getAllAgents() {
+    return this.adminService.getAllAgents();
+  }
+
+  @Post('agents')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: 'Créer un agent et l\'attribuer à plusieurs écoles (V2)' })
+  @ApiResponse({ status: 201, description: 'Agent créé avec succès' })
+  @ApiResponse({ status: 400, description: 'Données invalides' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async createGlobalAgent(
+    @Body() agentData: {
+      email: string;
+      password: string;
+      firstName?: string;
+      lastName?: string;
+      schoolIds: string[];
+    }
+  ) {
+    return this.adminService.createGlobalAgent(agentData);
+  }
+
+  @Put('agents/:agentId')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: 'Modifier un agent (nom, prénom, écoles) (V2)' })
+  @ApiResponse({ status: 200, description: 'Agent modifié avec succès' })
+  @ApiResponse({ status: 404, description: 'Agent non trouvé' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async updateAgent(
+    @Param('agentId') agentId: string,
+    @Body() updateData: {
+      firstName?: string;
+      lastName?: string;
+      schoolIds?: string[];
+    }
+  ) {
+    return this.adminService.updateAgent(agentId, updateData);
+  }
+
+  @Delete('agents/:agentId')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: 'Supprimer un agent complètement (V2)' })
+  @ApiResponse({ status: 200, description: 'Agent supprimé avec succès' })
+  @ApiResponse({ status: 404, description: 'Agent non trouvé' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async deleteAgent(@Param('agentId') agentId: string) {
+    return this.adminService.deleteAgent(agentId);
   }
 }

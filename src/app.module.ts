@@ -25,6 +25,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { ResourcesModule } from './modules/resources/resources.module';
+import { LibraryModule } from './modules/library/library.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AiModule } from './modules/ai/ai.module';
@@ -97,6 +98,7 @@ import { UploadModule } from './modules/upload/upload.module';
     StatisticsModule,
     AnalyticsModule,
     ResourcesModule,
+    LibraryModule, // V2: Bibliothèque de ressources
     NotificationsModule,
     AuditModule,
     AiModule,

@@ -54,6 +54,16 @@ export class ReportsService {
 
     const reports = await this.prisma.report.findMany({
       where,
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            className: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -141,6 +151,12 @@ export class ReportsService {
       id: report.id,
       schoolId: report.schoolId,
       studentId: report.studentId,
+      student: report.student ? {
+        id: report.student.id,
+        firstName: report.student.firstName,
+        lastName: report.student.lastName,
+        className: report.student.className,
+      } : undefined,
       content: report.content,
       urgency: report.urgency,
       anonymous: report.anonymous,

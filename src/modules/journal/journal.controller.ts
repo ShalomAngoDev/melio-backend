@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -146,5 +147,28 @@ export class JournalController {
       req.user.schoolId,
       updateJournalEntryDto,
     );
+  }
+
+  @Delete(':entryId')
+  @Roles(Role.STUDENT)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Supprimer une entrée de journal' })
+  @ApiResponse({
+    status: 204,
+    description: 'Entrée de journal supprimée avec succès',
+  })
+  @ApiResponse({ status: 403, description: 'Accès refusé' })
+  @ApiResponse({ status: 404, description: 'Entrée de journal non trouvée' })
+  async deleteJournalEntry(
+    @Param('studentId') studentId: string,
+    @Param('entryId') entryId: string,
+    @Request() req: any,
+  ): Promise<void> {
+    // Vérifier que l'élève peut accéder à son propre journal
+    if (req.user.sub !== studentId) {
+      throw new Error('Accès non autorisé à ce journal');
+    }
+
+    await this.journalService.deleteJournalEntry(entryId, studentId, req.user.schoolId);
   }
 }

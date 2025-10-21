@@ -30,6 +30,7 @@
     "check": "node scripts/check-requirements.js",
     "db:create": "node scripts/create-database.js",
     "dev": "npm run check && npm run setup && npm run prisma:generate && npm run prisma:migrate && npm run start:dev",
+    "dev:quick": "npm run start:dev",
     "prod": "npm run check && npm run setup && npm run build && npm run prisma:generate && npm run prisma:deploy && npm run start:prod",
     "db:setup": "npm run prisma:generate && npm run prisma:migrate && node scripts/force-migrate.js",
     "db:seed": "node scripts/seed-test-data.js",
