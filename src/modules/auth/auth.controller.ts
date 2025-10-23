@@ -36,14 +36,22 @@ export class AuthController {
   @Post('staff/login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 tentatives par minute
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Connexion Staff (Agents & Admins)',
-    description: 'Authentification sécurisée pour le personnel. Détecte automatiquement le rôle (Agent/Admin). Rate limiting: 5 tentatives/minute par IP.'
+    description:
+      'Authentification sécurisée pour le personnel. Détecte automatiquement le rôle (Agent/Admin). Rate limiting: 5 tentatives/minute par IP.',
   })
-  @ApiResponse({ status: 200, description: 'Connexion réussie - détecte automatiquement agent ou admin', type: AuthResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Connexion réussie - détecte automatiquement agent ou admin',
+    type: AuthResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Email ou mot de passe invalide' })
   @ApiResponse({ status: 429, description: 'Trop de tentatives de connexion' })
-  async staffLogin(@Body() staffLoginDto: StaffLoginDto, @Request() req: any): Promise<AuthResponseDto> {
+  async staffLogin(
+    @Body() staffLoginDto: StaffLoginDto,
+    @Request() req: any,
+  ): Promise<AuthResponseDto> {
     return this.authService.staffLogin(staffLoginDto.email, staffLoginDto.password, req.ip);
   }
 

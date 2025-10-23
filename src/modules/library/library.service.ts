@@ -60,7 +60,7 @@ export class LibraryService {
     schoolId: string,
     filters: LibraryResourceFilters = {},
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<LibraryResourceDto[]> {
     const where: any = {
       schoolId,
@@ -131,10 +131,7 @@ export class LibraryService {
         isActive: true,
         isFeatured: true,
       },
-      orderBy: [
-        { rating: 'desc' },
-        { views: 'desc' },
-      ],
+      orderBy: [{ rating: 'desc' }, { views: 'desc' }],
       take: limit,
     });
 
@@ -148,17 +145,16 @@ export class LibraryService {
         category,
         isActive: true,
       },
-      orderBy: [
-        { isFeatured: 'desc' },
-        { rating: 'desc' },
-        { views: 'desc' },
-      ],
+      orderBy: [{ isFeatured: 'desc' }, { rating: 'desc' }, { views: 'desc' }],
     });
 
     return resources.map(this.mapToDto);
   }
 
-  async createResource(schoolId: string, data: CreateLibraryResourceDto): Promise<LibraryResourceDto> {
+  async createResource(
+    schoolId: string,
+    data: CreateLibraryResourceDto,
+  ): Promise<LibraryResourceDto> {
     const resource = await this.prisma.libraryResource.create({
       data: {
         ...data,
@@ -171,7 +167,11 @@ export class LibraryService {
     return this.mapToDto(resource);
   }
 
-  async updateResource(id: string, schoolId: string, data: UpdateLibraryResourceDto): Promise<LibraryResourceDto> {
+  async updateResource(
+    id: string,
+    schoolId: string,
+    data: UpdateLibraryResourceDto,
+  ): Promise<LibraryResourceDto> {
     const resource = await this.prisma.libraryResource.findFirst({
       where: { id, schoolId },
     });
@@ -291,12 +291,12 @@ export class LibraryService {
 
   async getStudentFavorites(studentId: string, schoolId: string): Promise<LibraryResourceDto[]> {
     const favorites = await this.prisma.studentResourceFavorite.findMany({
-      where: { 
+      where: {
         studentId,
         resource: {
           schoolId,
           isActive: true,
-        }
+        },
       },
       include: {
         resource: true,
@@ -306,7 +306,7 @@ export class LibraryService {
       },
     });
 
-    return favorites.map(fav => this.mapToDto(fav.resource));
+    return favorites.map((fav) => this.mapToDto(fav.resource));
   }
 
   private async updateResourceRating(resourceId: string): Promise<void> {
@@ -317,7 +317,7 @@ export class LibraryService {
 
     if (ratings.length > 0) {
       const averageRating = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
-      
+
       await this.prisma.libraryResource.update({
         where: { id: resourceId },
         data: { rating: Math.round(averageRating * 10) / 10 },

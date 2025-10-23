@@ -32,9 +32,15 @@ export class AgentSchoolsController {
   @Roles(Role.AGENT)
   @ApiOperation({ summary: "Récupérer les informations d'une école dont l'agent est responsable" })
   @ApiResponse({ status: 200, description: "Informations de l'école", type: SchoolResponseDto })
-  @ApiResponse({ status: 403, description: "Accès refusé - L'agent n'est pas responsable de cette école" })
+  @ApiResponse({
+    status: 403,
+    description: "Accès refusé - L'agent n'est pas responsable de cette école",
+  })
   @ApiResponse({ status: 404, description: 'École non trouvée' })
-  async getSchoolInfo(@Param('id') schoolId: string, @Request() req: any): Promise<SchoolResponseDto> {
+  async getSchoolInfo(
+    @Param('id') schoolId: string,
+    @Request() req: any,
+  ): Promise<SchoolResponseDto> {
     // Vérifier que l'agent est bien responsable de cette école
     const agentSchool = await this.prisma.agentSchool.findFirst({
       where: {

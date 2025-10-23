@@ -151,12 +151,14 @@ export class ReportsService {
       id: report.id,
       schoolId: report.schoolId,
       studentId: report.studentId,
-      student: report.student ? {
-        id: report.student.id,
-        firstName: report.student.firstName,
-        lastName: report.student.lastName,
-        className: report.student.className,
-      } : undefined,
+      student: report.student
+        ? {
+            id: report.student.id,
+            firstName: report.student.firstName,
+            lastName: report.student.lastName,
+            className: report.student.className,
+          }
+        : undefined,
       content: report.content,
       urgency: report.urgency,
       anonymous: report.anonymous,

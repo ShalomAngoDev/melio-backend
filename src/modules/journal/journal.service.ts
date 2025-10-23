@@ -55,8 +55,10 @@ export class JournalService {
 
     // V2: Gérer les tags si fournis
     if (createJournalEntryDto.tags && createJournalEntryDto.tags.length > 0) {
-      this.logger.log(`Tags fournis pour nouvelle entrée: ${JSON.stringify(createJournalEntryDto.tags)}`);
-      
+      this.logger.log(
+        `Tags fournis pour nouvelle entrée: ${JSON.stringify(createJournalEntryDto.tags)}`,
+      );
+
       // Valider que tous les tags existent
       const validTags = await this.prisma.tag.findMany({
         where: {
@@ -67,11 +69,11 @@ export class JournalService {
         select: { id: true },
       });
 
-      const validTagIds = validTags.map(tag => tag.id);
+      const validTagIds = validTags.map((tag) => tag.id);
       this.logger.log(`Tags valides trouvés: ${JSON.stringify(validTagIds)}`);
 
       if (validTagIds.length > 0) {
-        const tagConnections = validTagIds.map(tagId => ({
+        const tagConnections = validTagIds.map((tagId) => ({
           journalEntryId: journalEntry.id,
           tagId: tagId,
         }));
@@ -81,7 +83,9 @@ export class JournalService {
         });
         this.logger.log(`${validTagIds.length} tag(s) ajouté(s) à l'entrée ${journalEntry.id}`);
       } else {
-        this.logger.warn(`Aucun tag valide fourni. IDs reçus: ${JSON.stringify(createJournalEntryDto.tags)}`);
+        this.logger.warn(
+          `Aucun tag valide fourni. IDs reçus: ${JSON.stringify(createJournalEntryDto.tags)}`,
+        );
       }
     }
 
@@ -146,10 +150,10 @@ export class JournalService {
       include: {
         tags: {
           include: {
-            tag: true
-          }
-        }
-      }
+            tag: true,
+          },
+        },
+      },
     });
 
     return this.mapToResponseDto(entryWithTags);
@@ -184,10 +188,10 @@ export class JournalService {
       include: {
         tags: {
           include: {
-            tag: true
-          }
-        }
-      }
+            tag: true,
+          },
+        },
+      },
     });
 
     return entries.map((entry) => this.mapToResponseDto(entry));
@@ -212,10 +216,10 @@ export class JournalService {
       include: {
         tags: {
           include: {
-            tag: true
-          }
-        }
-      }
+            tag: true,
+          },
+        },
+      },
     });
 
     if (!entry) {
@@ -271,8 +275,10 @@ export class JournalService {
 
       // Ajouter les nouveaux tags s'il y en a
       if (updateJournalEntryDto.tags.length > 0) {
-        this.logger.log(`Tags fournis pour l'entrée ${entryId}: ${JSON.stringify(updateJournalEntryDto.tags)}`);
-        
+        this.logger.log(
+          `Tags fournis pour l'entrée ${entryId}: ${JSON.stringify(updateJournalEntryDto.tags)}`,
+        );
+
         // Valider que tous les tags existent
         const validTags = await this.prisma.tag.findMany({
           where: {
@@ -283,11 +289,11 @@ export class JournalService {
           select: { id: true },
         });
 
-        const validTagIds = validTags.map(tag => tag.id);
+        const validTagIds = validTags.map((tag) => tag.id);
         this.logger.log(`Tags valides trouvés: ${JSON.stringify(validTagIds)}`);
 
         if (validTagIds.length > 0) {
-          const tagConnections = validTagIds.map(tagId => ({
+          const tagConnections = validTagIds.map((tagId) => ({
             journalEntryId: entryId,
             tagId: tagId,
           }));
@@ -297,7 +303,9 @@ export class JournalService {
           });
           this.logger.log(`${validTagIds.length} tag(s) ajouté(s) à l'entrée ${entryId}`);
         } else {
-          this.logger.warn(`Aucun tag valide fourni pour l'entrée ${entryId}. IDs reçus: ${JSON.stringify(updateJournalEntryDto.tags)}`);
+          this.logger.warn(
+            `Aucun tag valide fourni pour l'entrée ${entryId}. IDs reçus: ${JSON.stringify(updateJournalEntryDto.tags)}`,
+          );
         }
       }
     }
@@ -310,10 +318,10 @@ export class JournalService {
       include: {
         tags: {
           include: {
-            tag: true
-          }
-        }
-      }
+            tag: true,
+          },
+        },
+      },
     });
 
     return this.mapToResponseDto(entryWithTags);
@@ -322,11 +330,7 @@ export class JournalService {
   /**
    * Supprime une entrée de journal
    */
-  async deleteJournalEntry(
-    entryId: string,
-    studentId: string,
-    schoolId: string,
-  ): Promise<void> {
+  async deleteJournalEntry(entryId: string, studentId: string, schoolId: string): Promise<void> {
     // Vérifier que l'entrée existe et appartient à l'élève
     const existingEntry = await this.prisma.journalEntry.findFirst({
       where: {

@@ -13,7 +13,13 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { LibraryService, LibraryResourceDto, CreateLibraryResourceDto, UpdateLibraryResourceDto, LibraryResourceFilters } from './library.service';
+import {
+  LibraryService,
+  LibraryResourceDto,
+  CreateLibraryResourceDto,
+  UpdateLibraryResourceDto,
+  LibraryResourceFilters,
+} from './library.service';
 
 @Controller('library')
 @UseGuards(JwtAuthGuard)
@@ -32,7 +38,7 @@ export class LibraryController {
     @Query('offset') offset?: string,
   ): Promise<LibraryResourceDto[]> {
     const schoolId = req.user.schoolId;
-    
+
     const filters: LibraryResourceFilters = {
       category,
       type,
@@ -68,10 +74,7 @@ export class LibraryController {
   }
 
   @Get(':id')
-  async getResourceById(
-    @Request() req: any,
-    @Param('id') id: string,
-  ): Promise<LibraryResourceDto> {
+  async getResourceById(@Request() req: any, @Param('id') id: string): Promise<LibraryResourceDto> {
     const schoolId = req.user.schoolId;
     return this.libraryService.getResourceById(id, schoolId);
   }
@@ -97,20 +100,14 @@ export class LibraryController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteResource(
-    @Request() req: any,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async deleteResource(@Request() req: any, @Param('id') id: string): Promise<void> {
     const schoolId = req.user.schoolId;
     return this.libraryService.deleteResource(id, schoolId);
   }
 
   @Post(':id/view')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async recordView(
-    @Request() req: any,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async recordView(@Request() req: any, @Param('id') id: string): Promise<void> {
     const studentId = req.user.sub;
     return this.libraryService.recordView(id, studentId);
   }
@@ -128,28 +125,20 @@ export class LibraryController {
 
   @Post(':id/favorite')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async addToFavorites(
-    @Request() req: any,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async addToFavorites(@Request() req: any, @Param('id') id: string): Promise<void> {
     const studentId = req.user.sub;
     return this.libraryService.addToFavorites(id, studentId);
   }
 
   @Delete(':id/favorite')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async removeFromFavorites(
-    @Request() req: any,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async removeFromFavorites(@Request() req: any, @Param('id') id: string): Promise<void> {
     const studentId = req.user.sub;
     return this.libraryService.removeFromFavorites(id, studentId);
   }
 
   @Get('favorites/my')
-  async getStudentFavorites(
-    @Request() req: any,
-  ): Promise<LibraryResourceDto[]> {
+  async getStudentFavorites(@Request() req: any): Promise<LibraryResourceDto[]> {
     const studentId = req.user.sub;
     const schoolId = req.user.schoolId;
     return this.libraryService.getStudentFavorites(studentId, schoolId);

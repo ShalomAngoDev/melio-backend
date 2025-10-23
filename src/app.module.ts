@@ -13,6 +13,9 @@ import { RedisModule } from './config/redis.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { HealthModule } from './common/health/health.module';
 import { StaticModule } from './common/static/static.module';
+import { CacheService } from './common/cache/cache.service';
+import { QueryOptimizerService } from './common/database/query-optimizer.service';
+import { ResponseCompressionService } from './common/compression/response-compression.service';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -106,6 +109,16 @@ import { UploadModule } from './modules/upload/upload.module';
     TagsModule, // V2: Système de tags
     AchievementsModule, // V2: Gamification (badges et streaks)
     UploadModule, // V2: Upload de photos
+  ],
+  providers: [
+    CacheService,
+    QueryOptimizerService,
+    ResponseCompressionService,
+  ],
+  exports: [
+    CacheService,
+    QueryOptimizerService,
+    ResponseCompressionService,
   ],
 })
 export class AppModule {}

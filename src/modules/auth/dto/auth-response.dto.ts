@@ -38,7 +38,11 @@ export class AgentDto {
   @ApiProperty({ description: 'Rôle' })
   role: string;
 
-  @ApiProperty({ description: 'Liste des écoles gérées par cet agent (V2)', type: [SchoolInfo], required: false })
+  @ApiProperty({
+    description: 'Liste des écoles gérées par cet agent (V2)',
+    type: [SchoolInfo],
+    required: false,
+  })
   schools?: SchoolInfo[];
 
   @ApiProperty({ description: "ID de l'école actuellement sélectionnée (V2)", required: false })

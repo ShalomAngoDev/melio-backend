@@ -117,4 +117,3 @@ export const CORS_CONFIG = {
   exposedHeaders: ['X-Total-Count'],
   maxAge: 3600, // 1 heure
 };
-

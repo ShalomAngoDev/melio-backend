@@ -619,7 +619,7 @@ export class AdminService {
       },
     });
 
-    return agentSchools.map(as => as.agent);
+    return agentSchools.map((as) => as.agent);
   }
 
   /**
@@ -666,8 +666,8 @@ export class AdminService {
       },
     });
 
-    return { 
-      message: 'Agent assigné à l\'école avec succès',
+    return {
+      message: "Agent assigné à l'école avec succès",
       agent: {
         id: agent.id,
         email: agent.email,
@@ -703,7 +703,7 @@ export class AdminService {
       },
     });
 
-    return { message: 'Agent retiré de l\'école avec succès' };
+    return { message: "Agent retiré de l'école avec succès" };
   }
 
   // ===== V2: GESTION GLOBALE DES AGENTS =====
@@ -732,13 +732,13 @@ export class AdminService {
       },
     });
 
-    return agents.map(agent => ({
+    return agents.map((agent) => ({
       id: agent.id,
       email: agent.email,
       firstName: agent.firstName,
       lastName: agent.lastName,
       role: agent.role,
-      schools: agent.schools.map(as => as.school),
+      schools: agent.schools.map((as) => as.school),
       createdAt: agent.createdAt,
     }));
   }
@@ -787,7 +787,7 @@ export class AdminService {
         lastName: agentData.lastName,
         role: 'ROLE_AGENT',
         schools: {
-          create: agentData.schoolIds.map(schoolId => ({
+          create: agentData.schoolIds.map((schoolId) => ({
             schoolId,
           })),
         },
@@ -806,7 +806,7 @@ export class AdminService {
       email: agent.email,
       firstName: agent.firstName,
       lastName: agent.lastName,
-      schools: agent.schools.map(as => as.school),
+      schools: agent.schools.map((as) => as.school),
       createdAt: agent.createdAt,
     };
   }
@@ -814,11 +814,14 @@ export class AdminService {
   /**
    * Modifier un agent (nom, prénom et écoles)
    */
-  async updateAgent(agentId: string, updateData: {
-    firstName?: string;
-    lastName?: string;
-    schoolIds?: string[];
-  }) {
+  async updateAgent(
+    agentId: string,
+    updateData: {
+      firstName?: string;
+      lastName?: string;
+      schoolIds?: string[];
+    },
+  ) {
     // Vérifier que l'agent existe
     const agent = await this.prisma.agentUser.findUnique({
       where: { id: agentId },
@@ -847,7 +850,7 @@ export class AdminService {
       // Créer les nouvelles liaisons
       if (updateData.schoolIds.length > 0) {
         await this.prisma.agentSchool.createMany({
-          data: updateData.schoolIds.map(schoolId => ({
+          data: updateData.schoolIds.map((schoolId) => ({
             agentId,
             schoolId,
           })),
@@ -872,7 +875,7 @@ export class AdminService {
       email: agentWithSchools.email,
       firstName: agentWithSchools.firstName,
       lastName: agentWithSchools.lastName,
-      schools: agentWithSchools.schools.map(as => as.school),
+      schools: agentWithSchools.schools.map((as) => as.school),
     };
   }
 
@@ -897,9 +900,259 @@ export class AdminService {
       where: { id: agentId },
     });
 
-    return { 
+    return {
       message: 'Agent supprimé avec succès',
       schoolsAffected: agent.schools.length,
     };
+  }
+
+  // ===== GESTION DES ÉLÈVES PAR L'ADMIN =====
+  async getSchoolStudents(schoolId: string, filters: { search?: string; className?: string }) {
+    // Vérifier que l'école existe
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
+
+    if (!school) {
+      throw new NotFoundException('École non trouvée');
+    }
+
+    // Construire les filtres de recherche
+    const whereClause: any = {
+      schoolId: schoolId,
+    };
+
+    if (filters.search) {
+      whereClause.OR = [
+        { firstName: { contains: filters.search, mode: 'insensitive' } },
+        { lastName: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (filters.className) {
+      whereClause.className = filters.className;
+    }
+
+    const students = await this.prisma.student.findMany({
+      where: whereClause,
+      orderBy: [
+        { lastName: 'asc' },
+        { firstName: 'asc' },
+      ],
+    });
+
+    return students.map(student => ({
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      birthdate: student.birthdate,
+      sex: student.sex,
+      className: student.className,
+      parentName: student.parentName,
+      parentPhone: student.parentPhone,
+      parentEmail: student.parentEmail,
+      uniqueId: student.uniqueId,
+      createdAt: student.createdAt,
+    }));
+  }
+
+  async createSchoolStudent(schoolId: string, studentData: any) {
+    // Vérifier que l'école existe
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
+
+    if (!school) {
+      throw new NotFoundException('École non trouvée');
+    }
+
+    // Générer un code unique pour l'élève
+    const uniqueId = await this.generateStudentUniqueId(school.code);
+
+    // Créer l'élève
+    const student = await this.prisma.student.create({
+      data: {
+        firstName: studentData.firstName,
+        lastName: studentData.lastName,
+        birthdate: new Date(studentData.birthdate),
+        sex: studentData.sex,
+        className: studentData.className,
+        parentName: studentData.parentName,
+        parentPhone: studentData.parentPhone,
+        parentEmail: studentData.parentEmail,
+        uniqueId: uniqueId,
+        uniqueIdVer: 1, // Version actuelle de l'algorithme
+        school: {
+          connect: { id: schoolId }
+        },
+      },
+    });
+
+    return {
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      birthdate: student.birthdate,
+      sex: student.sex,
+      className: student.className,
+      parentName: student.parentName,
+      parentPhone: student.parentPhone,
+      parentEmail: student.parentEmail,
+      uniqueId: student.uniqueId,
+      createdAt: student.createdAt,
+    };
+  }
+
+  async updateSchoolStudent(schoolId: string, studentId: string, updateData: any) {
+    // Vérifier que l'élève appartient à cette école
+    const student = await this.prisma.student.findFirst({
+      where: {
+        id: studentId,
+        schoolId: schoolId,
+      },
+    });
+
+    if (!student) {
+      throw new NotFoundException('Élève non trouvé dans cette école');
+    }
+
+    // Mettre à jour l'élève
+    const updatedStudent = await this.prisma.student.update({
+      where: { id: studentId },
+      data: {
+        ...(updateData.firstName && { firstName: updateData.firstName }),
+        ...(updateData.lastName && { lastName: updateData.lastName }),
+        ...(updateData.birthdate && { birthdate: new Date(updateData.birthdate) }),
+        ...(updateData.sex && { sex: updateData.sex }),
+        ...(updateData.className && { className: updateData.className }),
+        ...(updateData.parentName !== undefined && { parentName: updateData.parentName }),
+        ...(updateData.parentPhone !== undefined && { parentPhone: updateData.parentPhone }),
+        ...(updateData.parentEmail !== undefined && { parentEmail: updateData.parentEmail }),
+      },
+    });
+
+    return {
+      id: updatedStudent.id,
+      firstName: updatedStudent.firstName,
+      lastName: updatedStudent.lastName,
+      birthdate: updatedStudent.birthdate,
+      sex: updatedStudent.sex,
+      className: updatedStudent.className,
+      parentName: updatedStudent.parentName,
+      parentPhone: updatedStudent.parentPhone,
+      parentEmail: updatedStudent.parentEmail,
+      uniqueId: updatedStudent.uniqueId,
+      createdAt: updatedStudent.createdAt,
+    };
+  }
+
+  async deleteSchoolStudent(schoolId: string, studentId: string) {
+    // Vérifier que l'élève appartient à cette école
+    const student = await this.prisma.student.findFirst({
+      where: {
+        id: studentId,
+        schoolId: schoolId,
+      },
+    });
+
+    if (!student) {
+      throw new NotFoundException('Élève non trouvé dans cette école');
+    }
+
+    // Supprimer l'élève
+    await this.prisma.student.delete({
+      where: { id: studentId },
+    });
+
+    return {
+      message: 'Élève supprimé avec succès',
+      studentName: `${student.firstName} ${student.lastName}`,
+    };
+  }
+
+  async importSchoolStudents(schoolId: string, studentsData: any[]) {
+    // Vérifier que l'école existe
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
+
+    if (!school) {
+      throw new NotFoundException('École non trouvée');
+    }
+
+    const results = {
+      success: 0,
+      errors: [] as any[],
+      created: [] as any[],
+    };
+
+    for (const studentData of studentsData) {
+      try {
+        // Générer un code unique pour l'élève
+        const uniqueId = await this.generateStudentUniqueId(school.code);
+
+        // Créer l'élève
+        const student = await this.prisma.student.create({
+          data: {
+            firstName: studentData.firstName,
+            lastName: studentData.lastName,
+            birthdate: new Date(studentData.birthdate),
+            sex: studentData.sex,
+            className: studentData.className,
+            parentName: studentData.parentName,
+            parentPhone: studentData.parentPhone,
+            parentEmail: studentData.parentEmail,
+            uniqueId: uniqueId,
+            uniqueIdVer: 1, // Version actuelle de l'algorithme
+            school: {
+              connect: { id: schoolId }
+            },
+          },
+        });
+
+        results.success++;
+        results.created.push({
+          id: student.id,
+          name: `${student.firstName} ${student.lastName}`,
+          uniqueId: student.uniqueId,
+        });
+      } catch (error) {
+        results.errors.push({
+          student: `${studentData.firstName} ${studentData.lastName}`,
+          error: error.message,
+        });
+      }
+    }
+
+    return {
+      message: `Import terminé: ${results.success} élèves créés, ${results.errors.length} erreurs`,
+      results,
+    };
+  }
+
+  private async generateStudentUniqueId(schoolCode: string): Promise<string> {
+    // Format: [CODE_ECOLE]-[ANNEE]-[NUMERO_SEQUENTIEL]
+    const currentYear = new Date().getFullYear().toString().slice(-2);
+    const prefix = `${schoolCode}-${currentYear}`;
+
+    // Trouver le dernier numéro séquentiel pour cette école et cette année
+    const lastStudent = await this.prisma.student.findFirst({
+      where: {
+        uniqueId: {
+          startsWith: prefix,
+        },
+      },
+      orderBy: {
+        uniqueId: 'desc',
+      },
+    });
+
+    let nextNumber = 1;
+    if (lastStudent) {
+      const lastNumber = parseInt(lastStudent.uniqueId.split('-').pop() || '0');
+      nextNumber = lastNumber + 1;
+    }
+
+    return `${prefix}-${nextNumber.toString().padStart(3, '0')}`;
   }
 }

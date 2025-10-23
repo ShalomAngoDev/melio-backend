@@ -1,11 +1,13 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import * as compression from 'compression';
 import { AppModule } from './app.module';
 import { execSync } from 'child_process';
 import { setupSecurity } from './config/security.config';
+import { ADVANCED_SECURITY_CONFIG } from './config/advanced-security.config';
+import { QueryOptimizerService } from './common/database/query-optimizer.service';
 
 async function bootstrap() {
   console.log('🚀 Starting Melio Backend...');
@@ -37,42 +39,30 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Configuration de sécurité centralisée
+  // Configuration de sécurité avancée
   setupSecurity(app);
-  app.use(compression());
+  app.use(ADVANCED_SECURITY_CONFIG.helmet);
+  app.use(compression({ level: 6, threshold: 1024 }));
 
-  // CORS sécurisé
-  const corsOrigins = configService.get('CORS_ORIGINS', '').split(',');
-  const productionOrigins = [
-    'https://www.melio-soutien.net',
-    'https://melio-soutien.net',
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:8080',
-  ];
-  
-  const allowedOrigins = [...corsOrigins, ...productionOrigins].filter(Boolean);
-  
-  app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      
-      if (configService.get('NODE_ENV') === 'production') {
-        logger.warn(`⚠️ Tentative d'accès CORS refusée depuis: ${origin}`);
-        return callback(new Error('Not allowed by CORS'), false);
-      }
-      
-      return callback(null, true);
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  });
+  // Validation globale stricte
+  app.useGlobalPipes(ADVANCED_SECURITY_CONFIG.validation);
+
+  // Rate limiting adaptatif
+  app.use('/api/v1/auth', ADVANCED_SECURITY_CONFIG.rateLimits.auth);
+  app.use('/api/v1/upload', ADVANCED_SECURITY_CONFIG.rateLimits.upload);
+  app.use('/api/v1', ADVANCED_SECURITY_CONFIG.rateLimits.api);
+
+  // Optimisation des requêtes de base de données
+  try {
+    const queryOptimizer = app.get(QueryOptimizerService);
+    await queryOptimizer.createOptimalIndexes();
+    logger.log('✅ Index de base de données optimisés');
+  } catch (error) {
+    logger.warn('⚠️ Erreur lors de l\'optimisation des index:', error.message);
+  }
+
+  // CORS sécurisé - utiliser la configuration depuis les variables d'environnement
+  app.enableCors(ADVANCED_SECURITY_CONFIG.cors);
 
   // Global prefix
   const apiPrefix = configService.get('API_PREFIX', 'api/v1');

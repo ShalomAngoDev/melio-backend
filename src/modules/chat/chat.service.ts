@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import { ChatAIService, ChatResponse } from './chat-ai.service';
 import { ChatMessageDto, CreateChatMessageDto } from './dto/chat-message.dto';
+import { ChatRiskAnalysisService } from './chat-risk-analysis.service';
 
 @Injectable()
 export class ChatService {
@@ -10,6 +11,7 @@ export class ChatService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly chatAI: ChatAIService,
+    private readonly chatRiskAnalysis: ChatRiskAnalysisService,
   ) {}
 
   /**
@@ -27,6 +29,20 @@ export class ChatService {
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
+
+    // Récupérer l'historique de conversation pour l'analyse de risque
+    const conversationHistory = await this.getStudentMessages(studentId, 20, 0);
+
+    // Analyser le risque du message et de la conversation
+    const riskAnalysis = await this.chatRiskAnalysis.analyzeChatRisk(
+      studentId,
+      createMessageDto.content,
+      conversationHistory
+    );
+
+    this.logger.log(
+      `Chat risk analysis for student ${studentId}: ${riskAnalysis.riskLevel} (${riskAnalysis.riskScore}/100)`
+    );
 
     // Créer le message de l'élève
     const userMessage = await this.prisma.chatMessage.create({
@@ -47,6 +63,14 @@ export class ChatService {
     } else {
       // Analyser et générer la réponse du bot
       botResponse = this.chatAI.analyzeAndRespond(createMessageDto.content);
+    }
+
+    // Si le risque est élevé ou critique, créer une alerte
+    if (['ELEVE', 'CRITIQUE'].includes(riskAnalysis.riskLevel)) {
+      await this.createChatAlert(studentId, student.schoolId, userMessage.id, riskAnalysis);
+      this.logger.log(
+        `Chat alert created for student ${studentId} with risk level: ${riskAnalysis.riskLevel}`
+      );
     }
 
     // Créer la réponse du bot
@@ -225,6 +249,42 @@ export class ChatService {
     this.logger.log(`Message empathique créé pour l'élève ${studentId} (niveau: ${riskLevel})`);
 
     return this.mapToDto(message);
+  }
+
+  /**
+   * Crée une alerte basée sur l'analyse de risque des conversations
+   */
+  private async createChatAlert(
+    studentId: string,
+    schoolId: string,
+    sourceId: string,
+    riskAnalysis: any
+  ): Promise<void> {
+    const student = await this.prisma.student.findUnique({
+      where: { id: studentId },
+    });
+
+    if (!student) {
+      this.logger.error(`Student not found for chat alert creation: ${studentId}`);
+      return;
+    }
+
+    await this.prisma.alert.create({
+      data: {
+        schoolId,
+        studentId,
+        sourceId,
+        sourceType: 'CHAT',
+        riskLevel: riskAnalysis.riskLevel,
+        riskScore: riskAnalysis.riskScore,
+        childMood: 'NEUTRE', // Pas d'humeur spécifique pour les conversations
+        aiSummary: `Analyse de conversation: ${riskAnalysis.summary}`,
+        aiAdvice: riskAnalysis.advice,
+        status: 'NOUVELLE',
+      },
+    });
+
+    this.logger.log(`Chat alert created for student ${student.firstName} ${student.lastName}`);
   }
 
   /**

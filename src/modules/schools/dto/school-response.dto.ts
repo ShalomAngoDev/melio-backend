@@ -56,6 +56,3 @@ export class SchoolResponseDto {
   updatedAt: string;
 }
 
-
-
-

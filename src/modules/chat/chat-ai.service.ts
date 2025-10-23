@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 export interface ChatResponse {
   content: string;
   resourceId?: string;
+  category?: string; // Catégorie détectée pour le fallback
 }
 
 @Injectable()
@@ -97,6 +98,9 @@ export class ChatAIService {
       'examen',
       'examens',
       'notes',
+      'harcelé',
+      'harceler',
+      'harcèlement',
     ],
     family: ['parents', 'maman', 'papa', 'famille', 'maison', 'maison'],
   };
@@ -166,17 +170,17 @@ export class ChatAIService {
     ],
   };
 
-  // Ressources par catégorie
+  // Ressources par catégorie (TOUS les IDs sont réels de la base de données)
   private readonly resources = {
-    fear: 'res_exercice_respiration',
-    sadness: 'res_temoignage_encouragement',
-    anger: 'res_exercice_colere',
-    loneliness: 'res_guide_amitie',
-    bullying: 'res_temoignage_harcelement',
-    violence: 'res_guide_protection',
-    school: 'res_conseils_ecole',
-    family: 'res_guide_famille',
-    general: 'res_inspiration_generale',
+    fear: 'cmgb6s2tv00075h3p2wnewbk4', // Techniques de relaxation
+    sadness: 'cmgb6s2u7000b5h3p6pu35x7w', // Reconnaître les signes de dépression
+    anger: 'cmgb6s2tv00075h3p2wnewbk4', // Techniques de relaxation
+    loneliness: 'cmgb6s2u7000b5h3p6pu35x7w', // Reconnaître les signes de dépression
+    bullying: 'cmgb6s2sv00015h3pge3bwnb8', // Comment j'ai surmonté le harcèlement
+    violence: 'cmgb6s2sv00015h3pge3bwnb8', // Comment j'ai surmonté le harcèlement
+    school: 'cmgb6s2sv00015h3pge3bwnb8', // Comment j'ai surmonté le harcèlement
+    family: 'cmgb6s2u7000b5h3p6pu35x7w', // Reconnaître les signes de dépression
+    general: 'cmgb6s2u7000b5h3p6pu35x7w', // Reconnaître les signes de dépression
   };
 
   /**
@@ -278,6 +282,7 @@ export class ChatAIService {
     return {
       content: finalResponse,
       resourceId: resourceId,
+      category: category, // Inclure la catégorie pour le fallback
     };
   }
 

@@ -22,7 +22,7 @@ export class AlertsController {
     name: 'schoolId',
     required: false,
     type: String,
-    description: 'ID de l\'école (V2: requis pour agents multi-écoles)',
+    description: "ID de l'école (V2: requis pour agents multi-écoles)",
   })
   @ApiQuery({
     name: 'status',
@@ -67,7 +67,7 @@ export class AlertsController {
     name: 'schoolId',
     required: false,
     type: String,
-    description: 'ID de l\'école (V2: requis pour agents multi-écoles)',
+    description: "ID de l'école (V2: requis pour agents multi-écoles)",
   })
   @ApiResponse({
     status: 200,
@@ -91,10 +91,7 @@ export class AlertsController {
     },
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
-  async getAlertStats(
-    @Request() req: any,
-    @Query('schoolId') querySchoolId?: string,
-  ) {
+  async getAlertStats(@Request() req: any, @Query('schoolId') querySchoolId?: string) {
     // V2: Utiliser querySchoolId si fourni, sinon fallback sur req.user.schoolId
     const schoolId = querySchoolId || req.user.schoolId;
     return this.alertsService.getAlertStats(schoolId);
@@ -111,9 +108,9 @@ export class AlertsController {
       properties: {
         message: { type: 'string' },
         timestamp: { type: 'string' },
-        schoolId: { type: 'string' }
-      }
-    }
+        schoolId: { type: 'string' },
+      },
+    },
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
   async refreshAlerts(@Request() req: any) {
@@ -122,7 +119,7 @@ export class AlertsController {
 
   @Get('debug/invalid-ids')
   @Roles(Role.AGENT)
-  @ApiOperation({ summary: 'Déboguer les IDs d\'alertes invalides' })
+  @ApiOperation({ summary: "Déboguer les IDs d'alertes invalides" })
   @ApiResponse({
     status: 200,
     description: 'Liste des IDs invalides trouvés',
@@ -131,9 +128,9 @@ export class AlertsController {
       properties: {
         invalidIds: { type: 'array', items: { type: 'string' } },
         validIds: { type: 'array', items: { type: 'string' } },
-        total: { type: 'number' }
-      }
-    }
+        total: { type: 'number' },
+      },
+    },
   })
   @ApiResponse({ status: 403, description: 'Accès refusé - Agent requis' })
   async debugInvalidIds(@Request() req: any) {
@@ -219,22 +216,19 @@ export class AlertsController {
   @ApiOperation({ summary: "Valider l'existence d'une alerte" })
   @ApiResponse({
     status: 200,
-    description: "Alerte valide",
+    description: 'Alerte valide',
     schema: {
       type: 'object',
       properties: {
         exists: { type: 'boolean' },
         alertId: { type: 'string' },
         schoolId: { type: 'string' },
-        status: { type: 'string' }
-      }
-    }
+        status: { type: 'string' },
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'Alerte non trouvée' })
-  async validateAlert(
-    @Param('id') alertId: string,
-    @Request() req: any,
-  ) {
+  async validateAlert(@Param('id') alertId: string, @Request() req: any) {
     return this.alertsService.validateAlert(alertId, req.user.schoolId);
   }
 }

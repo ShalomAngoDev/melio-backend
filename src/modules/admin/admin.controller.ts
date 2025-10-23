@@ -169,7 +169,7 @@ export class AdminController {
 
   @Post('schools/:schoolId/agents/assign')
   @Roles(Role.ADMIN_MELIO)
-  @ApiOperation({ summary: "Assigner un agent existant à une école (V2)" })
+  @ApiOperation({ summary: 'Assigner un agent existant à une école (V2)' })
   @ApiResponse({ status: 201, description: 'Agent assigné avec succès' })
   @ApiResponse({ status: 404, description: 'Agent ou école non trouvé' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
@@ -206,18 +206,19 @@ export class AdminController {
 
   @Post('agents')
   @Roles(Role.ADMIN_MELIO)
-  @ApiOperation({ summary: 'Créer un agent et l\'attribuer à plusieurs écoles (V2)' })
+  @ApiOperation({ summary: "Créer un agent et l'attribuer à plusieurs écoles (V2)" })
   @ApiResponse({ status: 201, description: 'Agent créé avec succès' })
   @ApiResponse({ status: 400, description: 'Données invalides' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   async createGlobalAgent(
-    @Body() agentData: {
+    @Body()
+    agentData: {
       email: string;
       password: string;
       firstName?: string;
       lastName?: string;
       schoolIds: string[];
-    }
+    },
   ) {
     return this.adminService.createGlobalAgent(agentData);
   }
@@ -230,11 +231,12 @@ export class AdminController {
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   async updateAgent(
     @Param('agentId') agentId: string,
-    @Body() updateData: {
+    @Body()
+    updateData: {
       firstName?: string;
       lastName?: string;
       schoolIds?: string[];
-    }
+    },
   ) {
     return this.adminService.updateAgent(agentId, updateData);
   }
@@ -247,5 +249,97 @@ export class AdminController {
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   async deleteAgent(@Param('agentId') agentId: string) {
     return this.adminService.deleteAgent(agentId);
+  }
+
+  // ===== GESTION DES ÉLÈVES PAR L'ADMIN =====
+  @Get('schools/:schoolId/students')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: "Lister les élèves d'une école (Admin)" })
+  @ApiQuery({ name: 'search', required: false, description: 'Rechercher par nom ou prénom' })
+  @ApiQuery({ name: 'className', required: false, description: 'Filtrer par classe' })
+  @ApiResponse({ status: 200, description: 'Liste des élèves de l\'école' })
+  @ApiResponse({ status: 404, description: 'École non trouvée' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async getSchoolStudents(
+    @Param('schoolId') schoolId: string,
+    @Query('search') search?: string,
+    @Query('className') className?: string,
+  ) {
+    return this.adminService.getSchoolStudents(schoolId, { search, className });
+  }
+
+  @Post('schools/:schoolId/students')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: "Ajouter un élève à une école (Admin)" })
+  @ApiResponse({ status: 201, description: 'Élève créé avec succès' })
+  @ApiResponse({ status: 400, description: 'Données invalides' })
+  @ApiResponse({ status: 404, description: 'École non trouvée' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async createSchoolStudent(
+    @Param('schoolId') schoolId: string,
+    @Body()
+    studentData: {
+      firstName: string;
+      lastName: string;
+      birthdate: string;
+      sex: 'M' | 'F';
+      className: string;
+      parentName?: string;
+      parentPhone?: string;
+      parentEmail?: string;
+    },
+  ) {
+    return this.adminService.createSchoolStudent(schoolId, studentData);
+  }
+
+  @Put('schools/:schoolId/students/:studentId')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: "Modifier un élève d'une école (Admin)" })
+  @ApiResponse({ status: 200, description: 'Élève modifié avec succès' })
+  @ApiResponse({ status: 404, description: 'Élève ou école non trouvé' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async updateSchoolStudent(
+    @Param('schoolId') schoolId: string,
+    @Param('studentId') studentId: string,
+    @Body()
+    updateData: {
+      firstName?: string;
+      lastName?: string;
+      birthdate?: string;
+      sex?: 'M' | 'F';
+      className?: string;
+      parentName?: string;
+      parentPhone?: string;
+      parentEmail?: string;
+    },
+  ) {
+    return this.adminService.updateSchoolStudent(schoolId, studentId, updateData);
+  }
+
+  @Delete('schools/:schoolId/students/:studentId')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: "Supprimer un élève d'une école (Admin)" })
+  @ApiResponse({ status: 200, description: 'Élève supprimé avec succès' })
+  @ApiResponse({ status: 404, description: 'Élève ou école non trouvé' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async deleteSchoolStudent(
+    @Param('schoolId') schoolId: string,
+    @Param('studentId') studentId: string,
+  ) {
+    return this.adminService.deleteSchoolStudent(schoolId, studentId);
+  }
+
+  @Post('schools/:schoolId/students/import')
+  @Roles(Role.ADMIN_MELIO)
+  @ApiOperation({ summary: "Importer des élèves depuis Excel (Admin)" })
+  @ApiResponse({ status: 201, description: 'Import réussi' })
+  @ApiResponse({ status: 400, description: 'Fichier invalide ou données incorrectes' })
+  @ApiResponse({ status: 404, description: 'École non trouvée' })
+  @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
+  async importSchoolStudents(
+    @Param('schoolId') schoolId: string,
+    @Body() importData: { students: any[] },
+  ) {
+    return this.adminService.importSchoolStudents(schoolId, importData.students);
   }
 }

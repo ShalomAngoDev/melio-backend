@@ -281,7 +281,10 @@ export class AlertsService {
   /**
    * Valide l'existence d'une alerte
    */
-  async validateAlert(alertId: string, schoolId: string): Promise<{
+  async validateAlert(
+    alertId: string,
+    schoolId: string,
+  ): Promise<{
     exists: boolean;
     alertId: string;
     schoolId?: string;
@@ -340,9 +343,9 @@ export class AlertsService {
     try {
       // Ici on pourrait vider un cache Redis si on en avait un
       // Pour l'instant, on retourne juste un message de confirmation
-      
+
       this.logger.log(`Cache refresh requested for school ${schoolId}`);
-      
+
       return {
         message: 'Cache vidé avec succès. Les données seront rechargées au prochain appel.',
         timestamp: new Date().toISOString(),
@@ -369,7 +372,7 @@ export class AlertsService {
         orderBy: { createdAt: 'desc' },
       });
 
-      const validIds = alerts.map(alert => alert.id);
+      const validIds = alerts.map((alert) => alert.id);
       const total = validIds.length;
 
       this.logger.log(`Found ${total} valid alerts for school ${schoolId}`);

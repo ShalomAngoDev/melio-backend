@@ -47,6 +47,3 @@ export class AlertCommentResponseDto {
   createdAt: Date;
 }
 
-
-
-

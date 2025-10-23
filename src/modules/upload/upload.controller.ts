@@ -44,10 +44,7 @@ export class UploadController {
   })
   @ApiResponse({ status: 400, description: 'Fichier invalide' })
   @ApiResponse({ status: 403, description: 'Accès refusé' })
-  async uploadPhoto(
-    @UploadedFile() file: Express.Multer.File,
-    @Request() req: any,
-  ) {
+  async uploadPhoto(@UploadedFile() file: Express.Multer.File, @Request() req: any) {
     if (!file) {
       throw new BadRequestException('Aucun fichier fourni');
     }

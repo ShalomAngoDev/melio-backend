@@ -5,7 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
 
-  async uploadPhoto(file: Express.Multer.File, userId: string): Promise<{ url: string; filename: string }> {
+  async uploadPhoto(
+    file: Express.Multer.File,
+    userId: string,
+  ): Promise<{ url: string; filename: string }> {
     try {
       // Générer un nom de fichier unique
       const fileExtension = file.originalname.split('.').pop() || 'jpg';

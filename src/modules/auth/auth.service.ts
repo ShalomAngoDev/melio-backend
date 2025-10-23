@@ -22,14 +22,19 @@ export class AuthService {
   // ===== STUDENT AUTHENTICATION =====
   async validateStudent(studentLoginDto: StudentLoginDto): Promise<AuthResponseDto> {
     const { schoolCode, studentIdentifier } = studentLoginDto;
+    
+    this.logger.log(`🔍 Tentative de connexion élève - Code école: ${schoolCode}, Identifiant: ${studentIdentifier}`);
 
     const school = await this.prisma.school.findUnique({
       where: { code: schoolCode },
     });
 
     if (!school) {
+      this.logger.warn(`❌ Code établissement invalide: ${schoolCode}`);
       throw new UnauthorizedException('Code établissement invalide');
     }
+
+    this.logger.log(`✅ École trouvée: ${school.name} (ID: ${school.id})`);
 
     const student = await this.prisma.student.findFirst({
       where: {
@@ -40,8 +45,19 @@ export class AuthService {
     });
 
     if (!student) {
+      this.logger.warn(`❌ Identifiant élève invalide: ${studentIdentifier} pour l'école ${school.name}`);
+      
+      // Log tous les élèves de cette école pour debug
+      const allStudents = await this.prisma.student.findMany({
+        where: { schoolId: school.id },
+        select: { uniqueId: true, firstName: true, lastName: true }
+      });
+      this.logger.log(`📋 Élèves disponibles dans ${school.name}: ${JSON.stringify(allStudents)}`);
+      
       throw new UnauthorizedException('Identifiant élève invalide');
     }
+
+    this.logger.log(`✅ Élève trouvé: ${student.firstName} ${student.lastName} (ID: ${student.id})`);
 
     const payload = {
       sub: student.id,
@@ -81,7 +97,7 @@ export class AuthService {
   // ===== STAFF AUTHENTICATION (V2) - Agents & Admins =====
   async staffLogin(email: string, password: string, ip?: string): Promise<AuthResponseDto> {
     const logPrefix = `[StaffLogin] [${ip || 'unknown'}]`;
-    
+
     // Validation préalable
     if (!email || !password) {
       this.logger.warn(`${logPrefix} Tentative de connexion avec champs vides`);
@@ -100,7 +116,9 @@ export class AuthService {
       // C'est un admin
       const isPasswordValid = await bcrypt.compare(password, admin.password);
       if (!isPasswordValid) {
-        this.logger.warn(`${logPrefix} Échec de connexion admin: ${normalizedEmail} - Mot de passe invalide`);
+        this.logger.warn(
+          `${logPrefix} Échec de connexion admin: ${normalizedEmail} - Mot de passe invalide`,
+        );
         throw new UnauthorizedException('Mot de passe invalide');
       }
 
@@ -156,12 +174,14 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(password, agent.password);
     if (!isPasswordValid) {
-      this.logger.warn(`${logPrefix} Échec de connexion agent: ${normalizedEmail} - Mot de passe invalide`);
+      this.logger.warn(
+        `${logPrefix} Échec de connexion agent: ${normalizedEmail} - Mot de passe invalide`,
+      );
       throw new UnauthorizedException('Mot de passe invalide');
     }
 
     // Récupérer toutes les écoles de l'agent
-    const schools = agent.schools.map(as => ({
+    const schools = agent.schools.map((as) => ({
       id: as.school.id,
       code: as.school.code,
       name: as.school.name,
@@ -169,7 +189,7 @@ export class AuthService {
 
     if (schools.length === 0) {
       this.logger.warn(`${logPrefix} Agent ${normalizedEmail} n'a aucune école associée`);
-      throw new UnauthorizedException('Cet agent n\'est associé à aucune école');
+      throw new UnauthorizedException("Cet agent n'est associé à aucune école");
     }
 
     // Par défaut, utiliser la première école (l'utilisateur pourra changer ensuite)
@@ -182,7 +202,7 @@ export class AuthService {
       role: agent.role,
       schoolId: defaultSchool.id,
       schoolCode: defaultSchool.code,
-      schools: schools.map(s => ({ id: s.id, code: s.code })),
+      schools: schools.map((s) => ({ id: s.id, code: s.code })),
     };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -197,7 +217,9 @@ export class AuthService {
 
     await this.redis.set(`refresh_token:${agent.id}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
 
-    this.logger.log(`${logPrefix} ✅ Agent connecté: ${normalizedEmail} (${schools.length} école(s): ${schools.map(s => s.code).join(', ')})`);
+    this.logger.log(
+      `${logPrefix} ✅ Agent connecté: ${normalizedEmail} (${schools.length} école(s): ${schools.map((s) => s.code).join(', ')})`,
+    );
 
     return {
       accessToken,

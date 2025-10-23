@@ -24,7 +24,7 @@ export class CreateJournalEntryDto {
 
   // V2: Champs de personnalisation
   @ApiProperty({
-    description: 'Couleur de personnalisation de l\'entrée',
+    description: "Couleur de personnalisation de l'entrée",
     example: 'pink',
     required: false,
   })
@@ -33,7 +33,7 @@ export class CreateJournalEntryDto {
   color?: string;
 
   @ApiProperty({
-    description: 'Image de couverture de l\'entrée',
+    description: "Image de couverture de l'entrée",
     example: 'sunset',
     required: false,
   })
@@ -42,7 +42,7 @@ export class CreateJournalEntryDto {
   coverImage?: string;
 
   @ApiProperty({
-    description: 'Tags/catégories associés à l\'entrée',
+    description: "Tags/catégories associés à l'entrée",
     example: ['tag_school', 'tag_friends'],
     required: false,
     type: [String],
@@ -53,7 +53,7 @@ export class CreateJournalEntryDto {
   tags?: string[];
 
   @ApiProperty({
-    description: 'URLs des photos associées à l\'entrée',
+    description: "URLs des photos associées à l'entrée",
     example: ['http://localhost:9000/melio/photos/user123/photo1.jpg'],
     required: false,
     type: [String],

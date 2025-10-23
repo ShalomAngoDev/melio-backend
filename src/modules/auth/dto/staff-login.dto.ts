@@ -7,7 +7,7 @@ export class StaffLoginDto {
     description: 'Email professionnel (Agent ou Admin)',
     example: 'agent@school.fr',
   })
-  @IsEmail({}, { message: 'Format d\'email invalide' })
+  @IsEmail({}, { message: "Format d'email invalide" })
   @MaxLength(255, { message: 'Email trop long' })
   @Transform(({ value }) => value?.toLowerCase().trim())
   email: string;
@@ -21,4 +21,3 @@ export class StaffLoginDto {
   @MaxLength(100, { message: 'Le mot de passe est trop long' })
   password: string;
 }
-
