@@ -24,7 +24,7 @@ export class ResponseCompressionService {
   async compressResponse(
     data: any,
     acceptEncoding: string,
-    contentType: string = 'application/json',
+    _contentType: string = 'application/json',
   ): Promise<{ data: Buffer; encoding: string; size: number }> {
     const serializedData = JSON.stringify(data);
     const originalSize = Buffer.byteLength(serializedData, 'utf8');

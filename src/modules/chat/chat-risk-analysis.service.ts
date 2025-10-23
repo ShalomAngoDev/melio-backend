@@ -349,7 +349,7 @@ export class ChatRiskAnalysisService {
   /**
    * Génère des conseils basés sur l'analyse
    */
-  private generateAdvice(riskLevel: string, category: string): string {
+  private generateAdvice(riskLevel: string, _category: string): string {
     const adviceMap = {
       CRITIQUE: 'Intervention immédiate requise. Contacter les parents et les services d\'urgence si nécessaire.',
       ELEVE: 'Surveillance renforcée recommandée. Planifier un entretien avec l\'élève et les parents.',
