@@ -1,17 +1,18 @@
-FROM node:20-alpine
+FROM node:20-slim
 
 # Set working directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
     postgresql-client \
     curl \
     openssl \
-    libssl1.1
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
@@ -32,8 +33,7 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nestjs -u 1001
+RUN groupadd -r nodejs && useradd -r -g nodejs nestjs
 
 # Change ownership of the app directory
 RUN chown -R nestjs:nodejs /app

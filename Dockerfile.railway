@@ -11,7 +11,7 @@ RUN apk add --no-cache \
     postgresql-client \
     curl \
     openssl \
-    libssl1.1
+    libssl3
 
 # Copy package files
 COPY package*.json ./
