@@ -2,21 +2,21 @@
 
 const { execSync } = require('child_process');
 
-console.log('🔧 Force migration and seed...');
+console.log('🔧 Gentle migration and seed...');
 
-async function forceMigrateAndSeed() {
+async function gentleMigrateAndSeed() {
   try {
     // Wait for database to be ready
     console.log('⏳ Waiting for database connection...');
     await new Promise(resolve => setTimeout(resolve, 5000));
     
-    // Force create database schema
-    console.log('📦 Creating database schema...');
-    execSync('npx prisma db push --force-reset', { stdio: 'inherit' });
-    
     // Generate Prisma client
     console.log('🔧 Generating Prisma client...');
     execSync('npx prisma generate', { stdio: 'inherit' });
+    
+    // Deploy migrations (without reset)
+    console.log('📦 Deploying migrations...');
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
     
     // Seed with fresh data
     console.log('🌱 Seeding database with fresh data...');
@@ -33,9 +33,9 @@ async function forceMigrateAndSeed() {
     execSync('npm run start:prod', { stdio: 'inherit' });
     
   } catch (error) {
-    console.error('❌ Error during force migration and seed:', error.message);
+    console.error('❌ Error during gentle migration and seed:', error.message);
     process.exit(1);
   }
 }
 
-forceMigrateAndSeed();
+gentleMigrateAndSeed();
