@@ -14,7 +14,7 @@ RUN apk add --no-cache \
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (include dev dependencies for build)
+# Install ALL dependencies (including dev) for build
 RUN npm ci --legacy-peer-deps --ignore-scripts && npm cache clean --force
 
 # Copy source code
@@ -23,10 +23,10 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build application
+# Build application (nest CLI will be available)
 RUN npm run build
 
-# Remove dev dependencies after build
+# Remove dev dependencies after build to reduce image size
 RUN npm prune --omit=dev
 
 # Create non-root user
