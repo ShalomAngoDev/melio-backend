@@ -3,11 +3,13 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-console.log('🚀 Starting Melio Backend with seed...');
+console.log('🚀 Starting Melio Backend with migrations and seed...');
 
+async function startApp() {
 try {
-  // Check if database is already seeded
-  console.log('🔍 Checking if database needs seeding...');
+  // Wait for database to be ready
+  console.log('⏳ Waiting for database connection...');
+  await new Promise(resolve => setTimeout(resolve, 5000));
   
   // Run migrations first
   console.log('📦 Running database migrations...');
@@ -17,7 +19,7 @@ try {
   console.log('🌱 Seeding database...');
   execSync('npm run prisma:seed', { stdio: 'inherit' });
   
-  console.log('✅ Database seeded successfully!');
+  console.log('✅ Database migrations and seed completed!');
   
   // Start the application
   console.log('🚀 Starting application...');
@@ -27,3 +29,6 @@ try {
   console.error('❌ Error during startup:', error.message);
   process.exit(1);
 }
+}
+
+startApp();

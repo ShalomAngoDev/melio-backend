@@ -26,10 +26,6 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Run migrations and seed
-RUN npx prisma migrate deploy
-RUN npm run prisma:seed
-
 # Build application
 RUN npm run build
 
@@ -51,4 +47,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:$PORT/api/v1/health || exit 1
 
 # Start application
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "start:prod:seed"]
