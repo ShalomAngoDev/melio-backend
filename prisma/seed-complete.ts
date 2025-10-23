@@ -3,7 +3,7 @@ import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-async function seedComplete() {
+export async function seedComplete() {
   console.log('🌱 Début du seeding complet...');
   
   try {
@@ -49,7 +49,11 @@ async function seedComplete() {
     ];
 
     for (const tag of tags) {
-      await prisma.tag.create({ data: tag });
+      await prisma.tag.upsert({
+        where: { id: tag.id },
+        update: tag,
+        create: tag,
+      });
     }
     console.log('✅ 12 tags créés');
 
