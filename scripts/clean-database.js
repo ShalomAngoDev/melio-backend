@@ -9,8 +9,23 @@ async function cleanDatabase() {
     console.log('🗑️ Cleaning database...');
     
     // Supprimer toutes les données dans le bon ordre (clés étrangères)
+    console.log('🧹 Deleting student achievements...');
+    await prisma.studentAchievement.deleteMany();
+    
+    console.log('🧹 Deleting student resource views...');
+    await prisma.studentResourceView.deleteMany();
+    
+    console.log('🧹 Deleting student resource ratings...');
+    await prisma.studentResourceRating.deleteMany();
+    
+    console.log('🧹 Deleting student resource favorites...');
+    await prisma.studentResourceFavorite.deleteMany();
+    
     console.log('🧹 Deleting chat messages...');
     await prisma.chatMessage.deleteMany();
+    
+    console.log('🧹 Deleting chatbot messages...');
+    await prisma.chatbotMessage.deleteMany();
     
     console.log('🧹 Deleting journal entries...');
     await prisma.journalEntry.deleteMany();
