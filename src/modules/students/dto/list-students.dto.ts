@@ -20,4 +20,3 @@ export class ListStudentsDto {
   @IsString()
   search?: string;
 }
-

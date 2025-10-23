@@ -68,10 +68,10 @@ export class HealthController {
   @ApiOperation({ summary: 'Basic health check (minimal response)' })
   @ApiResponse({ status: 200, description: 'Service is running' })
   basic() {
-    return { 
+    return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
   }
 

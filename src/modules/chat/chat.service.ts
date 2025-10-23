@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import { ChatAIService, ChatResponse } from './chat-ai.service';
 import { ChatMessageDto, CreateChatMessageDto } from './dto/chat-message.dto';
+import { ChatRiskAnalysisService } from './chat-risk-analysis.service';
 
 @Injectable()
 export class ChatService {
@@ -10,6 +11,7 @@ export class ChatService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly chatAI: ChatAIService,
+    private readonly chatRiskAnalysis: ChatRiskAnalysisService,
   ) {}
 
   /**
@@ -27,6 +29,20 @@ export class ChatService {
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
+
+    // Récupérer l'historique de conversation pour l'analyse de risque
+    const conversationHistory = await this.getStudentMessages(studentId, 20, 0);
+
+    // Analyser le risque du message et de la conversation
+    const riskAnalysis = await this.chatRiskAnalysis.analyzeChatRisk(
+      studentId,
+      createMessageDto.content,
+      conversationHistory
+    );
+
+    this.logger.log(
+      `Chat risk analysis for student ${studentId}: ${riskAnalysis.riskLevel} (${riskAnalysis.riskScore}/100)`
+    );
 
     // Créer le message de l'élève
     const userMessage = await this.prisma.chatMessage.create({
@@ -47,6 +63,14 @@ export class ChatService {
     } else {
       // Analyser et générer la réponse du bot
       botResponse = this.chatAI.analyzeAndRespond(createMessageDto.content);
+    }
+
+    // Si le risque est élevé ou critique, créer une alerte
+    if (['ELEVE', 'CRITIQUE'].includes(riskAnalysis.riskLevel)) {
+      await this.createChatAlert(studentId, student.schoolId, userMessage.id, riskAnalysis);
+      this.logger.log(
+        `Chat alert created for student ${studentId} with risk level: ${riskAnalysis.riskLevel}`
+      );
     }
 
     // Créer la réponse du bot
@@ -70,11 +94,7 @@ export class ChatService {
   /**
    * Récupère les messages de chat d'un élève
    */
-  async getStudentMessages(
-    studentId: string,
-    limit = 50,
-    offset = 0,
-  ): Promise<ChatMessageDto[]> {
+  async getStudentMessages(studentId: string, limit = 50, offset = 0): Promise<ChatMessageDto[]> {
     // Vérifier que l'élève existe
     const student = await this.prisma.student.findUnique({
       where: { id: studentId },
@@ -91,7 +111,7 @@ export class ChatService {
       skip: offset,
     });
 
-    return messages.map(message => this.mapToDto(message));
+    return messages.map((message) => this.mapToDto(message));
   }
 
   /**
@@ -109,7 +129,7 @@ export class ChatService {
       skip: offset,
     });
 
-    return messages.map(message => this.mapToDto(message));
+    return messages.map((message) => this.mapToDto(message));
   }
 
   /**
@@ -145,13 +165,13 @@ export class ChatService {
    */
   async deleteStudentMessages(studentId: string): Promise<void> {
     this.logger.log(`Suppression de tous les messages de chat pour l'élève ${studentId}`);
-    
+
     await this.prisma.chatMessage.deleteMany({
       where: {
         studentId: studentId,
       },
     });
-    
+
     this.logger.log(`Messages de chat supprimés pour l'élève ${studentId}`);
   }
 
@@ -160,25 +180,29 @@ export class ChatService {
    */
   generateEmpatheticMessage(
     riskLevel: 'FAIBLE' | 'MOYEN' | 'ELEVE' | 'CRITIQUE',
-    category?: string
+    category?: string,
   ): { content: string; resourceId?: string } {
     const messages = {
       FAIBLE: {
-        content: "Salut 👋 merci d'avoir écrit. Écrire aide à se sentir mieux. Tu veux que je te montre un témoignage inspirant ?",
-        resourceId: "res_inspiration_01"
+        content:
+          "Salut 👋 merci d'avoir écrit. Écrire aide à se sentir mieux. Tu veux que je te montre un témoignage inspirant ?",
+        resourceId: 'cmgb6s2sv00015h3pge3bwnb8', // Comment j'ai surmonté le harcèlement
       },
       MOYEN: {
-        content: "Je comprends que ça puisse être difficile. Tu n'es pas seul·e, d'autres enfants sont passés par là. Veux-tu voir quelques conseils pratiques ?",
-        resourceId: "res_conseils_pratiques_01"
+        content:
+          "Je comprends que ça puisse être difficile. Tu n'es pas seul·e, d'autres enfants sont passés par là. Veux-tu voir quelques conseils pratiques ?",
+        resourceId: 'cmgb6s2tv00075h3p2wnewbk4', // Techniques de relaxation
       },
       ELEVE: {
-        content: "Ça a l'air vraiment difficile pour toi en ce moment. Ce que tu ressens est important. En attendant que l'école t'aide, je peux te montrer une ressource qui a aidé d'autres élèves.",
-        resourceId: this.getResourceByCategory(category)
+        content:
+          "Ça a l'air vraiment difficile pour toi en ce moment. Ce que tu ressens est important. En attendant que l'école t'aide, je peux te montrer une ressource qui a aidé d'autres élèves.",
+        resourceId: this.getResourceByCategory(category),
       },
       CRITIQUE: {
-        content: "Je vois que tu traverses une période très difficile. L'école va être informée pour t'aider rapidement. En attendant, je suis là pour toi. Veux-tu que je te montre une ressource d'urgence ?",
-        resourceId: "res_urgence_01"
-      }
+        content:
+          "Coucou 😊\nTu veux qu'on prenne un petit moment pour discuter ?\nJe suis là pour toi.\nDis-moi, comment s'est passée ta journée aujourd'hui ?",
+        resourceId: 'cmgb6s2u7000b5h3p6pu35x7w', // Reconnaître les signes de dépression
+      },
     };
 
     return messages[riskLevel];
@@ -189,12 +213,12 @@ export class ChatService {
    */
   private getResourceByCategory(category?: string): string {
     const resources = {
-      'harassment': 'res_harassment_01',
-      'violence': 'res_violence_01',
-      'isolation': 'res_isolation_01',
-      'anxiety': 'res_anxiety_01',
-      'depression': 'res_depression_01',
-      'default': 'res_support_general_01'
+      bullying: 'cmgb6s2sv00015h3pge3bwnb8', // Comment j'ai surmonté le harcèlement
+      emotions: 'cmgb6s2ti00035h3p2oipdpny', // Gérer ses émotions au quotidien
+      friendship: 'cmgb6s2tn00055h3pqzl4tz9l', // Les vrais amis
+      'self-esteem': 'cmgb6s2u000095h3p8q10n3f8', // Construire sa confiance en soi
+      help: 'cmgb6s2u7000b5h3p6pu35x7w', // Reconnaître les signes de dépression
+      default: 'cmgb6s2ti00035h3p2oipdpny', // Gérer ses émotions au quotidien
     };
 
     return resources[category as keyof typeof resources] || resources.default;
@@ -207,7 +231,7 @@ export class ChatService {
     studentId: string,
     riskLevel: 'FAIBLE' | 'MOYEN' | 'ELEVE' | 'CRITIQUE',
     category?: string,
-    _relatedTo?: string
+    _relatedTo?: string,
   ): Promise<ChatMessageDto> {
     const { content, resourceId } = this.generateEmpatheticMessage(riskLevel, category);
 
@@ -225,6 +249,42 @@ export class ChatService {
     this.logger.log(`Message empathique créé pour l'élève ${studentId} (niveau: ${riskLevel})`);
 
     return this.mapToDto(message);
+  }
+
+  /**
+   * Crée une alerte basée sur l'analyse de risque des conversations
+   */
+  private async createChatAlert(
+    studentId: string,
+    schoolId: string,
+    sourceId: string,
+    riskAnalysis: any
+  ): Promise<void> {
+    const student = await this.prisma.student.findUnique({
+      where: { id: studentId },
+    });
+
+    if (!student) {
+      this.logger.error(`Student not found for chat alert creation: ${studentId}`);
+      return;
+    }
+
+    await this.prisma.alert.create({
+      data: {
+        schoolId,
+        studentId,
+        sourceId,
+        sourceType: 'CHAT',
+        riskLevel: riskAnalysis.riskLevel,
+        riskScore: riskAnalysis.riskScore,
+        childMood: 'NEUTRE', // Pas d'humeur spécifique pour les conversations
+        aiSummary: `Analyse de conversation: ${riskAnalysis.summary}`,
+        aiAdvice: riskAnalysis.advice,
+        status: 'NOUVELLE',
+      },
+    });
+
+    this.logger.log(`Chat alert created for student ${student.firstName} ${student.lastName}`);
   }
 
   /**

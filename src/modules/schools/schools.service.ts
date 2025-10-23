@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import { SchoolCodeGeneratorService } from './school-code-generator.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
@@ -51,16 +57,14 @@ export class SchoolsService {
     }
 
     // 3. Récupérer les codes existants pour éviter les collisions
-    const existingCodes = await this.prisma.school.findMany({
-      select: { code: true },
-    }).then(schools => schools.map(s => s.code));
+    const existingCodes = await this.prisma.school
+      .findMany({
+        select: { code: true },
+      })
+      .then((schools) => schools.map((s) => s.code));
 
     // 4. Générer un code d'établissement unique
-    const schoolCode = this.codeGenerator.generateUniqueSchoolCode(
-      name,
-      postalCode,
-      existingCodes,
-    );
+    const schoolCode = this.codeGenerator.generateUniqueSchoolCode(name, postalCode, existingCodes);
 
     // 5. Générer une clé secrète pour les identifiants élèves
     const idKey = crypto.randomBytes(32).toString('base64url');
@@ -130,12 +134,10 @@ export class SchoolsService {
 
     const schools = await this.prisma.school.findMany({
       where,
-      orderBy: [
-        { name: 'asc' },
-      ],
+      orderBy: [{ name: 'asc' }],
     });
 
-    return schools.map(school => this.mapToResponseDto(school));
+    return schools.map((school) => this.mapToResponseDto(school));
   }
 
   /**

@@ -9,11 +9,11 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { StudentLoginDto } from './dto/student-login.dto';
-import { AgentLoginDto } from './dto/agent-login.dto';
-import { AdminLoginDto } from './dto/admin-login.dto';
+import { StaffLoginDto } from './dto/staff-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 
@@ -32,24 +32,27 @@ export class AuthController {
     return this.authService.validateStudent(studentLoginDto);
   }
 
-  // ===== AGENT AUTHENTICATION =====
-  @Post('agent/login')
+  // ===== STAFF AUTHENTICATION (V2) - Agents & Admins =====
+  @Post('staff/login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Connexion agent d\'établissement' })
-  @ApiResponse({ status: 200, description: 'Connexion réussie', type: AuthResponseDto })
-  @ApiResponse({ status: 401, description: 'Code établissement, email ou mot de passe invalide' })
-  async agentLogin(@Body() agentLoginDto: AgentLoginDto): Promise<AuthResponseDto> {
-    return this.authService.validateAgent(agentLoginDto);
-  }
-
-  // ===== ADMIN AUTHENTICATION =====
-  @Post('admin/login')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Connexion admin Melio' })
-  @ApiResponse({ status: 200, description: 'Connexion réussie', type: AuthResponseDto })
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 tentatives par minute
+  @ApiOperation({
+    summary: 'Connexion Staff (Agents & Admins)',
+    description:
+      'Authentification sécurisée pour le personnel. Détecte automatiquement le rôle (Agent/Admin). Rate limiting: 5 tentatives/minute par IP.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Connexion réussie - détecte automatiquement agent ou admin',
+    type: AuthResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Email ou mot de passe invalide' })
-  async adminLogin(@Body() adminLoginDto: AdminLoginDto): Promise<AuthResponseDto> {
-    return this.authService.validateAdmin(adminLoginDto);
+  @ApiResponse({ status: 429, description: 'Trop de tentatives de connexion' })
+  async staffLogin(
+    @Body() staffLoginDto: StaffLoginDto,
+    @Request() req: any,
+  ): Promise<AuthResponseDto> {
+    return this.authService.staffLogin(staffLoginDto.email, staffLoginDto.password, req.ip);
   }
 
   // ===== REFRESH TOKEN =====
@@ -79,7 +82,7 @@ export class AuthController {
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Profil de l\'utilisateur connecté' })
+  @ApiOperation({ summary: "Profil de l'utilisateur connecté" })
   @ApiResponse({ status: 200, description: 'Profil utilisateur' })
   @ApiResponse({ status: 401, description: 'Token invalide' })
   async getProfile(@Request() req: any): Promise<any> {

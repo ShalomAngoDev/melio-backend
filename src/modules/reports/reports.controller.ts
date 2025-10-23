@@ -46,7 +46,7 @@ export class ReportsController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(Role.ROLE_AGENT, Role.ROLE_ADMIN_SCHOOL)
+  @Roles(Role.AGENT, Role.ADMIN_SCHOOL)
   async getReports(
     @Request() req: any,
     @Query('schoolId') schoolId?: string,
@@ -66,11 +66,8 @@ export class ReportsController {
 
   @Get('stats')
   @UseGuards(RolesGuard)
-  @Roles(Role.ROLE_AGENT, Role.ROLE_ADMIN_SCHOOL)
-  async getReportStats(
-    @Request() req: any,
-    @Query('schoolId') schoolId?: string,
-  ) {
+  @Roles(Role.AGENT, Role.ADMIN_SCHOOL)
+  async getReportStats(@Request() req: any, @Query('schoolId') schoolId?: string) {
     // Pour les agents, utiliser leur schoolId
     if (req.user.role === 'ROLE_AGENT') {
       schoolId = req.user.schoolId;
@@ -85,7 +82,7 @@ export class ReportsController {
 
   @Get(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ROLE_AGENT, Role.ROLE_ADMIN_SCHOOL)
+  @Roles(Role.AGENT, Role.ADMIN_SCHOOL)
   async getReportById(
     @Param('id') id: string,
     @Request() req: any,
@@ -105,7 +102,7 @@ export class ReportsController {
 
   @Patch(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ROLE_AGENT, Role.ROLE_ADMIN_SCHOOL)
+  @Roles(Role.AGENT, Role.ADMIN_SCHOOL)
   async updateReport(
     @Param('id') id: string,
     @Body() updateReportDto: UpdateReportDto,
@@ -126,7 +123,7 @@ export class ReportsController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ROLE_AGENT, Role.ROLE_ADMIN_SCHOOL)
+  @Roles(Role.AGENT, Role.ADMIN_SCHOOL)
   async deleteReport(
     @Param('id') id: string,
     @Request() req: any,

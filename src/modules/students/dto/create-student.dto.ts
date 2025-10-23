@@ -1,9 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsDateString, IsOptional, IsEmail, Matches, Length, MaxLength, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+  IsOptional,
+  IsEmail,
+  Matches,
+  Length,
+  MaxLength,
+  IsIn,
+} from 'class-validator';
 
 export class CreateStudentDto {
   @ApiProperty({
-    description: 'Code de l\'établissement',
+    description: "Code de l'établissement",
     example: 'COLL-JMOULIN-75',
     minLength: 8,
     maxLength: 20,
@@ -14,7 +24,7 @@ export class CreateStudentDto {
   schoolCode: string;
 
   @ApiProperty({
-    description: 'Prénom de l\'élève',
+    description: "Prénom de l'élève",
     example: 'Emma',
     minLength: 1,
     maxLength: 80,
@@ -22,11 +32,13 @@ export class CreateStudentDto {
   @IsString()
   @IsNotEmpty()
   @Length(1, 80, { message: 'Le prénom doit contenir entre 1 et 80 caractères' })
-  @Matches(/^[a-zA-ZÀ-ÿ\s\-]+$/, { message: 'Le prénom ne peut contenir que des lettres, espaces et tirets' })
+  @Matches(/^[a-zA-ZÀ-ÿ\s\-]+$/, {
+    message: 'Le prénom ne peut contenir que des lettres, espaces et tirets',
+  })
   firstName: string;
 
   @ApiProperty({
-    description: 'Nom de famille de l\'élève',
+    description: "Nom de famille de l'élève",
     example: 'Durand',
     minLength: 1,
     maxLength: 80,
@@ -34,7 +46,9 @@ export class CreateStudentDto {
   @IsString()
   @IsNotEmpty()
   @Length(1, 80, { message: 'Le nom doit contenir entre 1 et 80 caractères' })
-  @Matches(/^[a-zA-ZÀ-ÿ\s\-]+$/, { message: 'Le nom ne peut contenir que des lettres, espaces et tirets' })
+  @Matches(/^[a-zA-ZÀ-ÿ\s\-]+$/, {
+    message: 'Le nom ne peut contenir que des lettres, espaces et tirets',
+  })
   lastName: string;
 
   @ApiProperty({
@@ -45,7 +59,7 @@ export class CreateStudentDto {
   birthdate: string;
 
   @ApiProperty({
-    description: 'Sexe de l\'élève',
+    description: "Sexe de l'élève",
     example: 'F',
     enum: ['M', 'F'],
   })
@@ -55,7 +69,7 @@ export class CreateStudentDto {
   sex: string;
 
   @ApiProperty({
-    description: 'Classe de l\'élève',
+    description: "Classe de l'élève",
     example: '5eB',
     minLength: 1,
     maxLength: 20,
@@ -94,6 +108,6 @@ export class CreateStudentDto {
     required: false,
   })
   @IsOptional()
-  @IsEmail({}, { message: 'Format d\'email invalide' })
+  @IsEmail({}, { message: "Format d'email invalide" })
   parentEmail?: string;
 }

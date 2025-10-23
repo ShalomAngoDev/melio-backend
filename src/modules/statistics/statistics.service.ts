@@ -8,7 +8,7 @@ export class StatisticsService {
   async getGeneralStats(schoolId: string, period?: 'week' | 'month' | 'year') {
     // Construire la condition where
     let whereCondition = schoolId ? { schoolId } : {};
-    
+
     // Ajouter le filtre de date si une période est spécifiée
     if (period) {
       const now = new Date();
@@ -25,7 +25,7 @@ export class StatisticsService {
           startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
           break;
       }
-      
+
       whereCondition = { ...whereCondition, createdAt: { gte: startDate } } as any;
     }
 
@@ -45,26 +45,38 @@ export class StatisticsService {
     });
 
     // Regroupement par statut
-    const alertsByStatus = alerts.reduce((acc, alert) => {
-      acc[alert.status] = (acc[alert.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const alertsByStatus = alerts.reduce(
+      (acc, alert) => {
+        acc[alert.status] = (acc[alert.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const reportsByStatus = reports.reduce((acc, report) => {
-      acc[report.status] = (acc[report.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const reportsByStatus = reports.reduce(
+      (acc, report) => {
+        acc[report.status] = (acc[report.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     // Regroupement par niveau de risque
-    const alertsByRiskLevel = alerts.reduce((acc, alert) => {
-      acc[alert.riskLevel] = (acc[alert.riskLevel] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const alertsByRiskLevel = alerts.reduce(
+      (acc, alert) => {
+        acc[alert.riskLevel] = (acc[alert.riskLevel] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const reportsByUrgency = reports.reduce((acc, report) => {
-      acc[report.urgency] = (acc[report.urgency] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const reportsByUrgency = reports.reduce(
+      (acc, report) => {
+        acc[report.urgency] = (acc[report.urgency] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return {
       totalAlerts: alerts.length,
@@ -94,7 +106,9 @@ export class StatisticsService {
     }
 
     // Construire la condition where
-    const whereCondition = schoolId ? { schoolId, createdAt: { gte: startDate } } : { createdAt: { gte: startDate } };
+    const whereCondition = schoolId
+      ? { schoolId, createdAt: { gte: startDate } }
+      : { createdAt: { gte: startDate } };
 
     // Alertes temporelles
     const alerts = await this.prisma.alert.findMany({
@@ -126,7 +140,7 @@ export class StatisticsService {
     });
 
     // Récupérer les alertes pour ces étudiants
-    const studentIds = students.map(s => s.id);
+    const studentIds = students.map((s) => s.id);
     const alerts = await this.prisma.alert.findMany({
       where: {
         ...whereCondition,
@@ -143,36 +157,39 @@ export class StatisticsService {
     });
 
     // Regrouper par classe
-    const classStats = students.reduce((acc, student) => {
-      const className = student.className;
-      if (!acc[className]) {
-        acc[className] = {
-          className,
-          studentCount: 0,
-          alertCount: 0,
-          reportCount: 0,
-          riskLevels: [] as string[],
-        };
-      }
-      acc[className].studentCount++;
-      
-      // Compter les alertes pour cet étudiant
-      const studentAlerts = alerts.filter(a => a.studentId === student.id);
-      acc[className].alertCount += studentAlerts.length;
-      acc[className].riskLevels.push(...studentAlerts.map(a => a.riskLevel));
-      
-      // Compter les signalements pour cet étudiant
-      const studentReports = reports.filter(r => r.studentId === student.id);
-      acc[className].reportCount += studentReports.length;
-      
-      return acc;
-    }, {} as Record<string, any>);
+    const classStats = students.reduce(
+      (acc, student) => {
+        const className = student.className;
+        if (!acc[className]) {
+          acc[className] = {
+            className,
+            studentCount: 0,
+            alertCount: 0,
+            reportCount: 0,
+            riskLevels: [] as string[],
+          };
+        }
+        acc[className].studentCount++;
+
+        // Compter les alertes pour cet étudiant
+        const studentAlerts = alerts.filter((a) => a.studentId === student.id);
+        acc[className].alertCount += studentAlerts.length;
+        acc[className].riskLevels.push(...studentAlerts.map((a) => a.riskLevel));
+
+        // Compter les signalements pour cet étudiant
+        const studentReports = reports.filter((r) => r.studentId === student.id);
+        acc[className].reportCount += studentReports.length;
+
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
 
     // Calculer le niveau de risque par classe
     return Object.values(classStats).map((classData: any) => {
       const riskLevels = classData.riskLevels;
       let riskLevel = 'LOW';
-      
+
       if (riskLevels.includes('CRITIQUE')) {
         riskLevel = 'CRITICAL';
       } else if (riskLevels.includes('ELEVE')) {
@@ -236,7 +253,7 @@ export class StatisticsService {
     // Calculer les tendances avec gestion robuste des cas sans données
     let alertsPercentage = 0;
     let reportsPercentage = 0;
-    
+
     // Pour les alertes
     if (previousAlerts > 0) {
       alertsPercentage = ((currentAlerts - previousAlerts) / previousAlerts) * 100;
@@ -249,7 +266,7 @@ export class StatisticsService {
       // Aucune donnée, stable
       alertsPercentage = 0;
     }
-    
+
     // Pour les signalements
     if (previousReports > 0) {
       reportsPercentage = ((currentReports - previousReports) / previousReports) * 100;
@@ -306,18 +323,26 @@ export class StatisticsService {
       }
     }
 
-    return intervals.map(interval => {
-      const intervalData = data.filter(item => {
+    return intervals.map((interval) => {
+      const intervalData = data.filter((item) => {
         const itemDate = new Date(item.createdAt);
         return itemDate >= interval.start && itemDate < interval.end;
       });
 
       return {
         label: interval.label,
-        critical: intervalData.filter(item => item[levelField] === 'CRITIQUE' || item[levelField] === 'CRITICAL').length,
-        high: intervalData.filter(item => item[levelField] === 'ELEVE' || item[levelField] === 'HIGH').length,
-        medium: intervalData.filter(item => item[levelField] === 'MOYEN' || item[levelField] === 'MEDIUM').length,
-        low: intervalData.filter(item => item[levelField] === 'FAIBLE' || item[levelField] === 'LOW').length,
+        critical: intervalData.filter(
+          (item) => item[levelField] === 'CRITIQUE' || item[levelField] === 'CRITICAL',
+        ).length,
+        high: intervalData.filter(
+          (item) => item[levelField] === 'ELEVE' || item[levelField] === 'HIGH',
+        ).length,
+        medium: intervalData.filter(
+          (item) => item[levelField] === 'MOYEN' || item[levelField] === 'MEDIUM',
+        ).length,
+        low: intervalData.filter(
+          (item) => item[levelField] === 'FAIBLE' || item[levelField] === 'LOW',
+        ).length,
       };
     });
   }

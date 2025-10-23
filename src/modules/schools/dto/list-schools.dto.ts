@@ -47,7 +47,3 @@ export class ListSchoolsDto {
   level?: string;
 }
 
-
-
-
-

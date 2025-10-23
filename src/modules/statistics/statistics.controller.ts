@@ -7,14 +7,14 @@ import { StatisticsService } from './statistics.service';
 
 @Controller('statistics')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ROLE_AGENT, Role.ROLE_ADMIN_SCHOOL, Role.ROLE_ADMIN_MELIO)
+@Roles(Role.AGENT, Role.ADMIN_SCHOOL, Role.ADMIN_MELIO)
 export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) {}
 
   @Get('general')
   async getGeneralStats(
     @Query('schoolId') schoolId: string,
-    @Query('period') period?: 'week' | 'month' | 'year'
+    @Query('period') period?: 'week' | 'month' | 'year',
   ) {
     return this.statisticsService.getGeneralStats(schoolId, period);
   }
@@ -22,7 +22,7 @@ export class StatisticsController {
   @Get('temporal')
   async getTemporalStats(
     @Query('schoolId') schoolId: string,
-    @Query('period') period: 'week' | 'month' | 'year' = 'month'
+    @Query('period') period: 'week' | 'month' | 'year' = 'month',
   ) {
     return this.statisticsService.getTemporalStats(schoolId, period);
   }

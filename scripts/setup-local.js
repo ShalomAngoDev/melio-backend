@@ -104,3 +104,10 @@ console.log('   npm run dev     - Développement local');
 console.log('   npm run prod    - Production locale');
 console.log('   npm run db:setup - Configuration de la base de données');
 console.log('   npm run db:seed  - Chargement des données de test');
+
+
+
+
+
+
+

@@ -1,15 +1,17 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import helmet from 'helmet';
 import * as compression from 'compression';
 import { AppModule } from './app.module';
 import { execSync } from 'child_process';
+import { setupSecurity } from './config/security.config';
+import { ADVANCED_SECURITY_CONFIG } from './config/advanced-security.config';
+import { QueryOptimizerService } from './common/database/query-optimizer.service';
 
 async function bootstrap() {
   console.log('🚀 Starting Melio Backend...');
-  
+
   // Exécuter les migrations Prisma
   try {
     console.log('🔄 Running Prisma migrations...');
@@ -18,7 +20,7 @@ async function bootstrap() {
   } catch (error) {
     console.error('❌ Prisma migration failed:', error.message);
   }
-  
+
   // Créer le compte admin si nécessaire (production et développement)
   try {
     console.log('🔄 Ensuring admin account exists...');
@@ -28,68 +30,43 @@ async function bootstrap() {
     console.error('⚠️ Admin account creation warning:', adminError.message);
     // Ne pas bloquer le démarrage si l'admin existe déjà
   }
-  
+
   // NOTE: Le script force-migrate.js ne doit être exécuté QU'UNE SEULE FOIS lors de la configuration initiale
   // Il lance des scripts de seeding qui peuvent créer une boucle infinie
   // Pour l'exécuter manuellement : node scripts/force-migrate.js
-  
+
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Security
-  app.use(helmet());
-  app.use(compression());
+  // Configuration de sécurité avancée
+  setupSecurity(app);
+  app.use(ADVANCED_SECURITY_CONFIG.helmet);
+  app.use(compression({ level: 6, threshold: 1024 }));
 
-  // CORS
-  const corsOrigins = configService.get('CORS_ORIGINS', '').split(',');
-  const productionOrigins = [
-    'https://www.melio-soutien.net',
-    'https://melio-soutien.net',
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:8080'
-  ];
-  
-  const allowedOrigins = [...corsOrigins, ...productionOrigins].filter(Boolean);
-  
-  app.enableCors({
-    origin: (origin, callback) => {
-      // Autoriser les requêtes sans origin (ex: mobile apps, Postman)
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      
-      // En production, autoriser seulement les domaines spécifiés
-      if (configService.get('NODE_ENV') === 'production') {
-        return callback(new Error('Not allowed by CORS'), false);
-      }
-      
-      // En développement, autoriser toutes les origines
-      return callback(null, true);
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  });
+  // Validation globale stricte
+  app.useGlobalPipes(ADVANCED_SECURITY_CONFIG.validation);
+
+  // Rate limiting adaptatif
+  app.use('/api/v1/auth', ADVANCED_SECURITY_CONFIG.rateLimits.auth);
+  app.use('/api/v1/upload', ADVANCED_SECURITY_CONFIG.rateLimits.upload);
+  app.use('/api/v1', ADVANCED_SECURITY_CONFIG.rateLimits.api);
+
+  // Optimisation des requêtes de base de données
+  try {
+    const queryOptimizer = app.get(QueryOptimizerService);
+    await queryOptimizer.createOptimalIndexes();
+    logger.log('✅ Index de base de données optimisés');
+  } catch (error) {
+    logger.warn('⚠️ Erreur lors de l\'optimisation des index:', error.message);
+  }
+
+  // CORS sécurisé - utiliser la configuration depuis les variables d'environnement
+  app.enableCors(ADVANCED_SECURITY_CONFIG.cors);
 
   // Global prefix
   const apiPrefix = configService.get('API_PREFIX', 'api/v1');
   app.setGlobalPrefix(apiPrefix);
-
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
 
   // Swagger documentation
   const config = new DocumentBuilder()
@@ -112,12 +89,12 @@ async function bootstrap() {
     .addTag('Students', 'Gestion des élèves')
     .addTag('Journal', 'Journal intime des élèves')
     .addTag('Chat', 'Chatbot empathique')
-    .addTag('Alerts', 'Système d\'alertes IA')
+    .addTag('Alerts', "Système d'alertes IA")
     .addTag('Reports', 'Signalements')
     .addTag('Analytics', 'Statistiques et rapports')
     .addTag('Resources', 'Ressources pédagogiques')
     .addTag('Notifications', 'Système de notifications')
-    .addTag('Audit', 'Journal d\'audit')
+    .addTag('Audit', "Journal d'audit")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -129,7 +106,7 @@ async function bootstrap() {
 
   const port = configService.get('PORT', 3000);
   const host = configService.get('HOST', '0.0.0.0'); // Écouter sur toutes les interfaces
-  
+
   await app.listen(port, host);
 
   logger.log(`🚀 Application is running on: http://${host}:${port}`);

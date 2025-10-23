@@ -6,15 +6,9 @@ export class RedisService extends Redis implements OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
 
   constructor(options: any) {
-    console.log('🔍 RedisService constructor called with options:', {
-      url: options.url ? options.url.replace(/:[^:@]+@/, ':***@') : 'no url',
-      host: options.host || 'no host',
-      port: options.port || 'no port',
-      hasPassword: !!options.password
-    });
-    
+    // Configuration Redis initialisée
     super(options);
-    
+
     this.on('connect', () => {
       this.logger.log('Redis connected successfully');
     });
@@ -51,6 +45,6 @@ export class RedisService extends Redis implements OnModuleDestroy {
     pipeline.incr(key);
     pipeline.expire(key, ttlSeconds);
     const results = await pipeline.exec();
-    return results?.[0]?.[1] as number || 0;
+    return (results?.[0]?.[1] as number) || 0;
   }
 }

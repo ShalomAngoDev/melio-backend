@@ -5,7 +5,7 @@ export class ChatMessageDto {
   @ApiProperty({ description: 'ID du message' })
   id: string;
 
-  @ApiProperty({ description: 'ID de l\'élève' })
+  @ApiProperty({ description: "ID de l'élève" })
   studentId: string;
 
   @ApiProperty({ description: 'Expéditeur du message', enum: ['USER', 'BOT'] })

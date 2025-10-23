@@ -46,10 +46,12 @@ model School {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  agents     AgentUser[]
+  // V2: Relations many-to-many avec agents
+  agents     AgentSchool[]
   students   Student[]
   alerts     Alert[]
   reports    Report[]
+  libraryResources LibraryResource[]
 
   @@map("schools")
 }
@@ -72,11 +74,20 @@ model Student {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  // V2: Gamification
+  currentStreak  Int      @default(0) @map("current_streak")
+  bestStreak     Int      @default(0) @map("best_streak")
+  lastEntryDate  DateTime? @map("last_entry_date")
+
   journalEntries JournalEntry[]
   alerts         Alert[]
   chatbotMessages ChatbotMessage[]
   chatMessages   ChatMessage[]
   reports        Report[]
+  achievements   StudentAchievement[]
+  resourceViews    StudentResourceView[]
+  resourceRatings  StudentResourceRating[]
+  resourceFavorites StudentResourceFavorite[]
 
   @@index([schoolId, className])
   @@unique([schoolId, uniqueId]) // unicité au sein de l'établissement
@@ -85,13 +96,16 @@ model Student {
 
 model AgentUser {
   id        String   @id @default(cuid())
-  schoolId  String
-  school    School   @relation(fields: [schoolId], references: [id])
   email     String   @unique
   password  String   // hashé avec Argon2
+  firstName String?  @map("first_name") // Prénom de l'agent
+  lastName  String?  @map("last_name")  // Nom de l'agent
   role      String   @default("ROLE_AGENT")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // V2: Un agent peut gérer plusieurs écoles
+  schools   AgentSchool[]
 
   @@map("agent_users")
 }
@@ -107,6 +121,18 @@ model AdminUser {
   @@map("admin_users")
 }
 
+// V2: Table de liaison Agent ↔ École (many-to-many)
+model AgentSchool {
+  agentId   String    @map("agent_id")
+  agent     AgentUser @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  schoolId  String    @map("school_id")
+  school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@id([agentId, schoolId])
+  @@map("agent_schools")
+}
+
 // ===== JOURNAL INTIME & ANALYSE IA =====
 
 model JournalEntry {
@@ -118,12 +144,20 @@ model JournalEntry {
   contentText String
   createdAt   DateTime @default(now())
 
+  // V2: Personnalisation
+  color       String?  @default("pink")
+  coverImage  String?  @map("cover_image")
+  photos      String[] // URLs des photos uploadées
+
   // Analyse IA
   aiRiskScore Int?     // 0–100
   aiRiskLevel String?  // FAIBLE | MOYEN | ELEVE | CRITIQUE
   aiSummary   String?  // résumé généré
   aiAdvice    String?  // conseil stratégique
   processedAt DateTime?
+
+  // Relations V2
+  tags        JournalEntryTag[]
 
   @@index([studentId, createdAt])
   @@map("journal_entries")
@@ -224,4 +258,143 @@ model Report {
   @@index([schoolId, status])
   @@index([studentId, createdAt])
   @@map("reports")
+}
+
+// ===== V2: SYSTÈME DE TAGS =====
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  icon      String?
+  color     String   @default("#ec4899")
+  category  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  entries   JournalEntryTag[]
+
+  @@map("tags")
+}
+
+model JournalEntryTag {
+  journalEntryId String       @map("journal_entry_id")
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  tagId          String       @map("tag_id")
+  tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([journalEntryId, tagId])
+  @@index([journalEntryId])
+  @@index([tagId])
+  @@map("journal_entry_tags")
+}
+
+// ===== V2: GAMIFICATION =====
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique  // first_entry, week_streak, etc.
+  name        String
+  description String
+  icon        String
+  category    String   // WRITING | STREAK | ENGAGEMENT | SPECIAL
+  threshold   Int?     // Nombre requis pour débloquer (ex: 7 pour week_streak)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  students    StudentAchievement[]
+
+  @@map("achievements")
+}
+
+model StudentAchievement {
+  id            String   @id @default(cuid())
+  studentId     String   @map("student_id")
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievementId String   @map("achievement_id")
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime @default(now()) @map("unlocked_at")
+
+  @@unique([studentId, achievementId])
+  @@index([studentId])
+  @@map("student_achievements")
+}
+
+// ===== V2: LIBRARY RESOURCES =====
+
+model LibraryResource {
+  id          String   @id @default(cuid())
+  title       String
+  type        String   // video | testimony | book | article
+  category    String   // bullying | emotions | friendship | self-esteem | help
+  description String
+  content     String?  // Contenu principal (texte, URL, etc.)
+  duration    String?  // Durée pour les vidéos (ex: "12 min")
+  author      String?  // Auteur de la ressource
+  rating      Float    @default(0.0) // Note moyenne (0-5)
+  views       Int      @default(0)   // Nombre de vues
+  thumbnail   String?  // URL de l'image de couverture
+  isActive    Boolean  @default(true) // Ressource active/inactive
+  isFeatured  Boolean  @default(false) // Ressource mise en avant
+  tags        String[] // Tags pour la recherche
+  metadata    String?  // Données JSON supplémentaires
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  schoolId    String?  @map("school_id")
+  school      School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  
+  // Interactions des étudiants
+  studentViews    StudentResourceView[]
+  studentRatings  StudentResourceRating[]
+  studentFavorites StudentResourceFavorite[]
+
+  @@index([category])
+  @@index([type])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([schoolId])
+  @@map("library_resources")
+}
+
+model StudentResourceView {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resourceId String   @map("resource_id")
+  resource   LibraryResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  viewedAt   DateTime @default(now()) @map("viewed_at")
+  
+  @@unique([studentId, resourceId])
+  @@index([studentId])
+  @@index([resourceId])
+  @@map("student_resource_views")
+}
+
+model StudentResourceRating {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resourceId String   @map("resource_id")
+  resource   LibraryResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  rating     Int      // Note de 1 à 5
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  @@unique([studentId, resourceId])
+  @@index([studentId])
+  @@index([resourceId])
+  @@map("student_resource_ratings")
+}
+
+model StudentResourceFavorite {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resourceId String   @map("resource_id")
+  resource   LibraryResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  favoritedAt DateTime @default(now()) @map("favorited_at")
+  
+  @@unique([studentId, resourceId])
+  @@index([studentId])
+  @@index([resourceId])
+  @@map("student_resource_favorites")
 }

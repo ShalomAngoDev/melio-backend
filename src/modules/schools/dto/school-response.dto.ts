@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SchoolResponseDto {
-  @ApiProperty({ description: 'ID unique de l\'établissement' })
+  @ApiProperty({ description: "ID unique de l'établissement" })
   id: string;
 
-  @ApiProperty({ description: 'Code d\'établissement (8 caractères)' })
+  @ApiProperty({ description: "Code d'établissement (8 caractères)" })
   code: string;
 
   @ApiProperty({ description: 'Nom officiel' })
@@ -28,7 +28,7 @@ export class SchoolResponseDto {
   @ApiProperty({ description: 'Fuseau horaire' })
   timezone: string;
 
-  @ApiProperty({ description: 'Niveau d\'enseignement', required: false })
+  @ApiProperty({ description: "Niveau d'enseignement", required: false })
   level?: string;
 
   @ApiProperty({ description: 'Code UAI', required: false })
@@ -43,10 +43,10 @@ export class SchoolResponseDto {
   @ApiProperty({ description: 'Téléphone du contact principal', required: false })
   contactPhone?: string;
 
-  @ApiProperty({ description: 'Paramètres de l\'établissement', required: false })
+  @ApiProperty({ description: "Paramètres de l'établissement", required: false })
   settings?: any;
 
-  @ApiProperty({ description: 'Statut de l\'établissement' })
+  @ApiProperty({ description: "Statut de l'établissement" })
   status: string;
 
   @ApiProperty({ description: 'Date de création' })
@@ -55,8 +55,4 @@ export class SchoolResponseDto {
   @ApiProperty({ description: 'Date de dernière mise à jour' })
   updatedAt: string;
 }
-
-
-
-
 

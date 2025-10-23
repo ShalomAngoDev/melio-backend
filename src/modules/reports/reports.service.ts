@@ -54,12 +54,22 @@ export class ReportsService {
 
     const reports = await this.prisma.report.findMany({
       where,
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            className: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return reports.map(report => this.mapToResponseDto(report));
+    return reports.map((report) => this.mapToResponseDto(report));
   }
 
   async getReportById(id: string, schoolId: string): Promise<ReportResponseDto> {
@@ -77,7 +87,11 @@ export class ReportsService {
     return this.mapToResponseDto(report);
   }
 
-  async updateReport(id: string, schoolId: string, updateReportDto: UpdateReportDto): Promise<ReportResponseDto> {
+  async updateReport(
+    id: string,
+    schoolId: string,
+    updateReportDto: UpdateReportDto,
+  ): Promise<ReportResponseDto> {
     // Vérifier que le signalement existe et appartient à cette école
     const existingReport = await this.prisma.report.findFirst({
       where: {
@@ -137,6 +151,14 @@ export class ReportsService {
       id: report.id,
       schoolId: report.schoolId,
       studentId: report.studentId,
+      student: report.student
+        ? {
+            id: report.student.id,
+            firstName: report.student.firstName,
+            lastName: report.student.lastName,
+            className: report.student.className,
+          }
+        : undefined,
       content: report.content,
       urgency: report.urgency,
       anonymous: report.anonymous,

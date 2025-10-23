@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UserProfileDto {
   @ApiProperty({
-    description: 'ID de l\'utilisateur',
+    description: "ID de l'utilisateur",
     example: 'cuid123',
   })
   id: string;
@@ -41,19 +41,19 @@ export class UserProfileDto {
   role: string;
 
   @ApiProperty({
-    description: 'ID de l\'établissement',
+    description: "ID de l'établissement",
     example: 'school123',
   })
   schoolId: string;
 
   @ApiProperty({
-    description: 'Code de l\'établissement',
+    description: "Code de l'établissement",
     example: 'COLLEGE2024',
   })
   schoolCode: string;
 
   @ApiProperty({
-    description: 'Nom de l\'établissement',
+    description: "Nom de l'établissement",
     example: 'Collège Victor Hugo',
   })
   schoolName: string;

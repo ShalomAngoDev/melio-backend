@@ -44,27 +44,64 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash(agentPassword, 10);
 
-  const agent = await prisma.agentUser.upsert({
+  // V2: Nouvelle structure avec agents multi-écoles
+  const existingAgent = await prisma.agentUser.findUnique({
     where: { email: agentEmail },
-    update: {
-      password: hashedPassword,
-      schoolId: school.id,
-      role: 'ROLE_AGENT',
-    },
-    create: {
-      email: agentEmail,
-      password: hashedPassword,
-      schoolId: school.id,
-      role: 'ROLE_AGENT',
+    include: {
+      schools: {
+        include: {
+          school: true,
+        },
+      },
     },
   });
 
-  console.log(`✅ Agent created: ${agent.email} for school: ${school.name}`);
+  let agent;
+  
+  if (existingAgent) {
+    // Agent existe, mettre à jour le mot de passe
+    agent = await prisma.agentUser.update({
+      where: { email: agentEmail },
+      data: {
+        password: hashedPassword,
+      },
+    });
+    
+    // Vérifier si l'agent est déjà lié à cette école
+    const isLinked = existingAgent.schools.some(as => as.schoolId === school.id);
+    if (!isLinked) {
+      await prisma.agentSchool.create({
+        data: {
+          agentId: agent.id,
+          schoolId: school.id,
+        },
+      });
+      console.log(`✅ École ${school.code} ajoutée à l'agent existant`);
+    }
+  } else {
+    // Créer un nouvel agent avec la liaison à l'école
+    agent = await prisma.agentUser.create({
+      data: {
+        email: agentEmail,
+        password: hashedPassword,
+        firstName: 'Agent',
+        lastName: 'Hugo',
+        role: 'ROLE_AGENT',
+        schools: {
+          create: {
+            schoolId: school.id,
+          },
+        },
+      },
+    });
+  }
+
+  console.log(`✅ Agent created/updated: ${agent.email} for school: ${school.name}`);
   console.log('\n📋 Test credentials:');
-  console.log(`School Code: ${school.code}`);
   console.log(`Agent Email: ${agent.email}`);
   console.log(`Agent Password: ${agentPassword}`);
   console.log(`School Name: ${school.name}`);
+  console.log(`School Code: ${school.code}`);
   console.log(`School City: ${school.city}`);
 }
 
@@ -76,6 +113,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-
-

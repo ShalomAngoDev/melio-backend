@@ -56,8 +56,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
 
     this.logger.warn('Cleaning database...');
-    const models = Reflect.ownKeys(this).filter(key => key[0] !== '_');
-    
+    const models = Reflect.ownKeys(this).filter((key) => key[0] !== '_');
+
     return Promise.all(
       models.map((modelKey) => {
         const model = this[modelKey as keyof this];

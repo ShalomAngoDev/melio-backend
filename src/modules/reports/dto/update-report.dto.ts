@@ -11,4 +11,3 @@ export class UpdateReportDto {
   @IsOptional()
   status?: ReportStatus;
 }
-

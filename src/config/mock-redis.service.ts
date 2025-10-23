@@ -22,7 +22,7 @@ export class MockRedisService {
   }
 
   async setex(key: string, ttlSeconds: number, value: string): Promise<void> {
-    const expiry = Date.now() + (ttlSeconds * 1000);
+    const expiry = Date.now() + ttlSeconds * 1000;
     this.data.set(key, { value, expiry });
   }
 
