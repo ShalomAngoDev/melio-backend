@@ -49,11 +49,17 @@ export async function seedComplete() {
     ];
 
     for (const tag of tags) {
-      await prisma.tag.upsert({
-        where: { id: tag.id },
-        update: tag,
-        create: tag,
-      });
+      try {
+        await prisma.tag.create({
+          data: tag,
+        });
+      } catch (error) {
+        if (error.code === 'P2002') {
+          console.log(`⚠️ Tag ${tag.name} already exists, skipping...`);
+        } else {
+          throw error;
+        }
+      }
     }
     console.log('✅ 12 tags créés');
 
