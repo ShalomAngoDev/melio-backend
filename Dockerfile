@@ -9,7 +9,9 @@ RUN apk add --no-cache \
     make \
     g++ \
     postgresql-client \
-    curl
+    curl \
+    openssl \
+    libssl1.1
 
 # Copy package files
 COPY package*.json ./
