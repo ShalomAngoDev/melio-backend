@@ -17,38 +17,70 @@ export class QueryOptimizerService {
    * Crée les index optimaux pour les performances
    */
   async createOptimalIndexes(): Promise<void> {
+    // Vérifier d'abord si les tables existent
+    const tablesToCheck = ['alerts', 'reports', 'journal_entries', 'agent_schools', 'students', 'chat_messages'];
+    const existingTables = new Set<string>();
+
+    for (const table of tablesToCheck) {
+      try {
+        await this.prisma.$executeRawUnsafe(`SELECT 1 FROM ${table} LIMIT 1`);
+        existingTables.add(table);
+        this.logger.log(`✅ Table ${table} exists`);
+      } catch (error) {
+        this.logger.warn(`⚠️ Table ${table} does not exist yet, skipping related indexes`);
+      }
+    }
+
     const indexes = [
       // Index pour les alertes (noms de colonnes corrects selon le schéma)
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_school_status ON alerts("schoolId", status)',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_created_at ON alerts("createdAt" DESC)',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_risk_level ON alerts("riskLevel")',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_student_id ON alerts("studentId")',
+      ...(existingTables.has('alerts') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_school_status ON alerts("schoolId", status)',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_created_at ON alerts("createdAt" DESC)',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_risk_level ON alerts("riskLevel")',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_student_id ON alerts("studentId")',
+      ] : []),
 
       // Index pour les signalements
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_school_status ON reports("schoolId", status)',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_created_at ON reports("createdAt" DESC)',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_urgency ON reports(urgency)',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_student_id ON reports("studentId")',
+      ...(existingTables.has('reports') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_school_status ON reports("schoolId", status)',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_created_at ON reports("createdAt" DESC)',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_urgency ON reports(urgency)',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_student_id ON reports("studentId")',
+      ] : []),
 
       // Index pour les élèves
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_school_class ON students("schoolId", "className")',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_unique_id ON students("uniqueId")',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_sex ON students(sex)',
+      ...(existingTables.has('students') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_school_class ON students("schoolId", "className")',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_unique_id ON students("uniqueId")',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_sex ON students(sex)',
+      ] : []),
 
       // Index pour les messages de chat
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chat_messages_student_created ON chat_messages("studentId", "createdAt" DESC)',
+      ...(existingTables.has('chat_messages') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chat_messages_student_created ON chat_messages("studentId", "createdAt" DESC)',
+      ] : []),
 
       // Index pour les entrées de journal
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_journal_entries_student_created ON journal_entries("studentId", "createdAt" DESC)',
+      ...(existingTables.has('journal_entries') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_journal_entries_student_created ON journal_entries("studentId", "createdAt" DESC)',
+      ] : []),
 
       // Index pour les statistiques
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_agent_id ON agent_schools("agentId")',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_school_id ON agent_schools("schoolId")',
+      ...(existingTables.has('agent_schools') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_agent_id ON agent_schools("agentId")',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_school_id ON agent_schools("schoolId")',
+      ] : []),
 
       // Index composites pour les requêtes complexes
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_school_status_created ON alerts("schoolId", status, "createdAt" DESC)',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_school_status_created ON reports("schoolId", status, "createdAt" DESC)',
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_school_sex_class ON students("schoolId", sex, "className")',
+      ...(existingTables.has('alerts') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_school_status_created ON alerts("schoolId", status, "createdAt" DESC)',
+      ] : []),
+      ...(existingTables.has('reports') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_school_status_created ON reports("schoolId", status, "createdAt" DESC)',
+      ] : []),
+      ...(existingTables.has('students') ? [
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_school_sex_class ON students("schoolId", sex, "className")',
+      ] : []),
     ];
 
     for (const indexQuery of indexes) {
