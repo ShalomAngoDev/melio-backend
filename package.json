@@ -15,6 +15,7 @@
     "start:prod:seed": "node scripts/start-with-seed.js",
     "start:prod:reset": "node scripts/reset-and-seed.js",
     "start:prod:smart": "node scripts/smart-reset-and-seed.js",
+    "start:prod:force": "node scripts/force-migrate-and-seed.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
