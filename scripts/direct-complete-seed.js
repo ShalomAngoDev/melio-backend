@@ -183,6 +183,7 @@ async function directCompleteSeed() {
       students.push({
         id: `student_${String(i).padStart(3, '0')}`,
         uniqueId: `ELEVE${String(i).padStart(3, '0')}`,
+        uniqueIdVer: 1,
         firstName: `Élève${i}`,
         lastName: `Nom${i}`,
         sex: i % 2 === 0 ? 'F' : 'M',

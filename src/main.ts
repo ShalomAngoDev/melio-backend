@@ -32,22 +32,14 @@ async function bootstrap() {
   // Seed complet avec toutes les données
   try {
     console.log('🌱 Running complete seed...');
-    execSync('npm run prisma:seed', { stdio: 'inherit' });
+    execSync('node scripts/complete-seed-js.js', { stdio: 'inherit' });
     console.log('✅ Complete seed completed');
   } catch (seedError) {
     console.error('⚠️ Complete seed warning:', seedError.message);
     // Ne pas bloquer le démarrage si le seed échoue
   }
 
-  // Créer le compte admin si nécessaire (production et développement)
-  try {
-    console.log('🔄 Ensuring admin account exists...');
-    execSync('node scripts/ensure-admin.js', { stdio: 'inherit' });
-    console.log('✅ Admin account check completed');
-  } catch (adminError) {
-    console.error('⚠️ Admin account creation warning:', adminError.message);
-    // Ne pas bloquer le démarrage si l'admin existe déjà
-  }
+          // Admin account is already created by the complete seed script
 
   // NOTE: Le script force-migrate.js ne doit être exécuté QU'UNE SEULE FOIS lors de la configuration initiale
   // Il lance des scripts de seeding qui peuvent créer une boucle infinie

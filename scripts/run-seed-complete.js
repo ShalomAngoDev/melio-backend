@@ -2,13 +2,13 @@
 
 const { execSync } = require('child_process');
 
-console.log('🌱 Using seed-complete directly...');
+console.log('🌱 Running seed-complete with Node.js...');
 
-async function useSeedComplete() {
+async function runSeedComplete() {
   try {
     // Wait for database to be ready
     console.log('⏳ Waiting for database connection...');
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Generate Prisma client
     console.log('🔧 Generating Prisma client...');
@@ -18,9 +18,13 @@ async function useSeedComplete() {
     console.log('🧹 Cleaning database...');
     execSync('npm run clean:db', { stdio: 'inherit' });
     
-    // Run seed-complete directly with Node.js
-    console.log('🌱 Running seed-complete directly...');
-    execSync('node scripts/direct-complete-seed.js', { stdio: 'inherit' });
+    // Compile TypeScript to JavaScript
+    console.log('🔨 Compiling TypeScript...');
+    execSync('npx tsc prisma/seed-complete.ts --outDir dist --target es2020 --module commonjs --esModuleInterop --allowSyntheticDefaultImports', { stdio: 'inherit' });
+    
+    // Run the compiled JavaScript
+    console.log('🌱 Running compiled seed-complete...');
+    execSync('node dist/prisma/seed-complete.js', { stdio: 'inherit' });
     
     console.log('✅ Seed-complete completed successfully!');
     
@@ -30,4 +34,4 @@ async function useSeedComplete() {
   }
 }
 
-useSeedComplete();
+runSeedComplete();
