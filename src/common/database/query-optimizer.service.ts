@@ -67,8 +67,8 @@ export class QueryOptimizerService {
 
       // Index pour les statistiques
       ...(existingTables.has('agent_schools') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_agent_id ON agent_schools("agentId")',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_school_id ON agent_schools("schoolId")',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_agent_id ON agent_schools(agent_id)',
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_school_id ON agent_schools(school_id)',
       ] : []),
 
       // Index composites pour les requêtes complexes

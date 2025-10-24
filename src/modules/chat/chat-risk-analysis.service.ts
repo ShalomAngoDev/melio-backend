@@ -179,7 +179,7 @@ export class ChatRiskAnalysisService {
   /**
    * Analyse le contexte de la conversation
    */
-  private analyzeConversationContext(conversationHistory: any[], newMessage: string): {
+  private analyzeConversationContext(conversationHistory: any[], _newMessage: string): {
     emotionalTone: string;
     frequency: number;
     escalationTrend: boolean;

@@ -123,8 +123,8 @@ export const ADVANCED_SECURITY_CONFIG = {
 /**
  * Middleware de logging des tentatives suspectes
  */
-export const securityLogger = (req: Request, res: Response, next: Function) => {
-  const ip = req.ip || req.connection.remoteAddress;
+export const securityLogger = (req: Request, res: Response, next: () => void) => {
+  // const _ip = req.ip || req.connection.remoteAddress;
   const userAgent = req.get('User-Agent') || 'Unknown';
   
   // Détecter les patterns suspects
@@ -147,8 +147,8 @@ export const securityLogger = (req: Request, res: Response, next: Function) => {
 /**
  * Middleware de protection contre les attaques par déni de service
  */
-export const dosProtection = (req: Request, res: Response, next: Function) => {
-  const ip = req.ip || req.connection.remoteAddress;
+export const dosProtection = (req: Request, res: Response, next: () => void) => {
+  // const _ip = req.ip || req.connection.remoteAddress;
   
   // Limiter la taille des requêtes
   if (req.get('content-length') && parseInt(req.get('content-length')!) > 10 * 1024 * 1024) {

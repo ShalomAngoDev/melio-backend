@@ -97,19 +97,19 @@ async function seedComplete() {
     });
     console.log('✅ Admin créé: admin@melio.app / admin123');
 
-    // 4. Créer les écoles avec des codes fixes
+    // 4. Créer les écoles avec des codes fixes (Collèges et Lycées uniquement)
     console.log('🏫 Création des écoles...');
     const schoolsData = [
       { code: 'SCHOOL001', name: 'Collège Victor Hugo', city: 'Paris', postalCode: '75001', level: 'COLLEGE' },
       { code: 'SCHOOL002', name: 'Lycée Louis Pasteur', city: 'Lyon', postalCode: '69001', level: 'LYCEE' },
-      { code: 'SCHOOL003', name: 'École Primaire Marie Curie', city: 'Marseille', postalCode: '13001', level: 'PRIMARY' },
-      { code: 'SCHOOL004', name: 'Collège Jules Verne', city: 'Toulouse', postalCode: '31000', level: 'COLLEGE' },
-      { code: 'SCHOOL005', name: 'Lycée Albert Einstein', city: 'Nice', postalCode: '06000', level: 'LYCEE' },
-      { code: 'SCHOOL006', name: 'École Maternelle Les Petits Loups', city: 'Nantes', postalCode: '44000', level: 'PRIMARY' },
-      { code: 'SCHOOL007', name: 'Collège Jean Moulin', city: 'Strasbourg', postalCode: '67000', level: 'COLLEGE' },
-      { code: 'SCHOOL008', name: 'Lycée Claude Monet', city: 'Montpellier', postalCode: '34000', level: 'LYCEE' },
-      { code: 'SCHOOL009', name: 'École Primaire Les Lilas', city: 'Bordeaux', postalCode: '33000', level: 'PRIMARY' },
-      { code: 'SCHOOL010', name: 'Collège Simone Veil', city: 'Lille', postalCode: '59000', level: 'COLLEGE' },
+      { code: 'SCHOOL003', name: 'Collège Jules Verne', city: 'Marseille', postalCode: '13001', level: 'COLLEGE' },
+      { code: 'SCHOOL004', name: 'Lycée Albert Einstein', city: 'Toulouse', postalCode: '31000', level: 'LYCEE' },
+      { code: 'SCHOOL005', name: 'Collège Jean Moulin', city: 'Nice', postalCode: '06000', level: 'COLLEGE' },
+      { code: 'SCHOOL006', name: 'Lycée Claude Monet', city: 'Nantes', postalCode: '44000', level: 'LYCEE' },
+      { code: 'SCHOOL007', name: 'Collège Simone Veil', city: 'Strasbourg', postalCode: '67000', level: 'COLLEGE' },
+      { code: 'SCHOOL008', name: 'Lycée Marie Curie', city: 'Montpellier', postalCode: '34000', level: 'LYCEE' },
+      { code: 'SCHOOL009', name: 'Collège Antoine de Saint-Exupéry', city: 'Bordeaux', postalCode: '33000', level: 'COLLEGE' },
+      { code: 'SCHOOL010', name: 'Lycée Gustave Eiffel', city: 'Lille', postalCode: '59000', level: 'LYCEE' },
     ];
 
     const schools = [];
@@ -327,7 +327,7 @@ async function seedComplete() {
       'Roche', 'Renard', 'Schmitt', 'Roy', 'Leroux', 'Colin', 'Vidal', 'Caron', 'Picard', 'Roger'
     ];
 
-    const classes = ['CP', 'CE1', 'CE2', 'CM1', 'CM2', '6eA', '6eB', '5eA', '5eB', '4eA', '4eB', '3eA', '3eB', '2ndeA', '2ndeB', '1èreA', '1èreB', 'TermA', 'TermB'];
+    const classes = ['6eA', '6eB', '5eA', '5eB', '4eA', '4eB', '3eA', '3eB', '2ndeA', '2ndeB', '1èreA', '1èreB', 'TermA', 'TermB'];
 
     // Fonction pour supprimer les accents
     const removeAccents = (str) => {
