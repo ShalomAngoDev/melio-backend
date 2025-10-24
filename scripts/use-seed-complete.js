@@ -18,9 +18,9 @@ async function useSeedComplete() {
     console.log('🧹 Cleaning database...');
     execSync('npm run clean:db', { stdio: 'inherit' });
     
-    // Run seed-complete directly with ts-node
+    // Run seed-complete directly with Node.js
     console.log('🌱 Running seed-complete directly...');
-    execSync('npx ts-node prisma/seed-complete.ts', { stdio: 'inherit' });
+    execSync('node -r ts-node/register prisma/seed-complete.ts', { stdio: 'inherit' });
     
     console.log('✅ Seed-complete completed successfully!');
     
