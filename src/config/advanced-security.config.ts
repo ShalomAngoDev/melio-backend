@@ -17,9 +17,9 @@ export const ADVANCED_SECURITY_CONFIG = {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https:"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'https:'],
         scriptSrc: ["'self'"],
         connectSrc: ["'self'"],
         frameSrc: ["'none'"],
@@ -72,7 +72,7 @@ export const ADVANCED_SECURITY_CONFIG = {
       windowMs: 60 * 60 * 1000, // 1 heure
       max: 50, // 50 uploads par IP
       message: {
-        error: 'Limite d\'upload atteinte. Réessayez dans une heure.',
+        error: "Limite d'upload atteinte. Réessayez dans une heure.",
         retryAfter: 60 * 60,
       },
     }),
@@ -92,12 +92,15 @@ export const ADVANCED_SECURITY_CONFIG = {
 
   // Configuration CORS sécurisée
   cors: {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [];
-      
+
       // Autoriser les requêtes sans origin (mobile, Postman, etc.)
       if (!origin) return callback(null, true);
-      
+
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -126,21 +129,14 @@ export const ADVANCED_SECURITY_CONFIG = {
 export const securityLogger = (req: Request, res: Response, next: () => void) => {
   // const _ip = req.ip || req.connection.remoteAddress;
   const userAgent = req.get('User-Agent') || 'Unknown';
-  
+
   // Détecter les patterns suspects
-  const suspiciousPatterns = [
-    /sqlmap/i,
-    /nikto/i,
-    /nmap/i,
-    /masscan/i,
-    /zap/i,
-    /burp/i,
-  ];
-  
-  if (suspiciousPatterns.some(pattern => pattern.test(userAgent))) {
-    console.warn(`🚨 Tentative suspecte détectée - IP: ${ip}, UA: ${userAgent}`);
+  const suspiciousPatterns = [/sqlmap/i, /nikto/i, /nmap/i, /masscan/i, /zap/i, /burp/i];
+
+  if (suspiciousPatterns.some((pattern) => pattern.test(userAgent))) {
+    console.warn(`🚨 Tentative suspecte détectée - UA: ${userAgent}`);
   }
-  
+
   next();
 };
 
@@ -149,7 +145,7 @@ export const securityLogger = (req: Request, res: Response, next: () => void) =>
  */
 export const dosProtection = (req: Request, res: Response, next: () => void) => {
   // const _ip = req.ip || req.connection.remoteAddress;
-  
+
   // Limiter la taille des requêtes
   if (req.get('content-length') && parseInt(req.get('content-length')!) > 10 * 1024 * 1024) {
     return res.status(413).json({
@@ -157,7 +153,6 @@ export const dosProtection = (req: Request, res: Response, next: () => void) => 
       maxSize: '10MB',
     });
   }
-  
+
   next();
 };
-

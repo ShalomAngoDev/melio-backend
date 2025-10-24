@@ -39,7 +39,7 @@ async function bootstrap() {
     // Ne pas bloquer le démarrage si le seed échoue
   }
 
-          // Admin account is already created by the complete seed script
+  // Admin account is already created by the complete seed script
 
   // NOTE: Le script force-migrate.js ne doit être exécuté QU'UNE SEULE FOIS lors de la configuration initiale
   // Il lance des scripts de seeding qui peuvent créer une boucle infinie
@@ -68,7 +68,7 @@ async function bootstrap() {
     await queryOptimizer.createOptimalIndexes();
     logger.log('✅ Index de base de données optimisés');
   } catch (error) {
-    logger.warn('⚠️ Erreur lors de l\'optimisation des index:', error.message);
+    logger.warn("⚠️ Erreur lors de l'optimisation des index:", error.message);
   }
 
   // CORS sécurisé - utiliser la configuration depuis les variables d'environnement

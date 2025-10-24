@@ -22,8 +22,10 @@ export class AuthService {
   // ===== STUDENT AUTHENTICATION =====
   async validateStudent(studentLoginDto: StudentLoginDto): Promise<AuthResponseDto> {
     const { schoolCode, studentIdentifier } = studentLoginDto;
-    
-    this.logger.log(`🔍 Tentative de connexion élève - Code école: ${schoolCode}, Identifiant: ${studentIdentifier}`);
+
+    this.logger.log(
+      `🔍 Tentative de connexion élève - Code école: ${schoolCode}, Identifiant: ${studentIdentifier}`,
+    );
 
     const school = await this.prisma.school.findUnique({
       where: { code: schoolCode },
@@ -45,19 +47,23 @@ export class AuthService {
     });
 
     if (!student) {
-      this.logger.warn(`❌ Identifiant élève invalide: ${studentIdentifier} pour l'école ${school.name}`);
-      
+      this.logger.warn(
+        `❌ Identifiant élève invalide: ${studentIdentifier} pour l'école ${school.name}`,
+      );
+
       // Log tous les élèves de cette école pour debug
       const allStudents = await this.prisma.student.findMany({
         where: { schoolId: school.id },
-        select: { uniqueId: true, firstName: true, lastName: true }
+        select: { uniqueId: true, firstName: true, lastName: true },
       });
       this.logger.log(`📋 Élèves disponibles dans ${school.name}: ${JSON.stringify(allStudents)}`);
-      
+
       throw new UnauthorizedException('Identifiant élève invalide');
     }
 
-    this.logger.log(`✅ Élève trouvé: ${student.firstName} ${student.lastName} (ID: ${student.id})`);
+    this.logger.log(
+      `✅ Élève trouvé: ${student.firstName} ${student.lastName} (ID: ${student.id})`,
+    );
 
     const payload = {
       sub: student.id,

@@ -257,7 +257,7 @@ export class AdminController {
   @ApiOperation({ summary: "Lister les élèves d'une école (Admin)" })
   @ApiQuery({ name: 'search', required: false, description: 'Rechercher par nom ou prénom' })
   @ApiQuery({ name: 'className', required: false, description: 'Filtrer par classe' })
-  @ApiResponse({ status: 200, description: 'Liste des élèves de l\'école' })
+  @ApiResponse({ status: 200, description: "Liste des élèves de l'école" })
   @ApiResponse({ status: 404, description: 'École non trouvée' })
   @ApiResponse({ status: 403, description: 'Accès refusé - Admin Melio requis' })
   async getSchoolStudents(
@@ -270,7 +270,7 @@ export class AdminController {
 
   @Post('schools/:schoolId/students')
   @Roles(Role.ADMIN_MELIO)
-  @ApiOperation({ summary: "Ajouter un élève à une école (Admin)" })
+  @ApiOperation({ summary: 'Ajouter un élève à une école (Admin)' })
   @ApiResponse({ status: 201, description: 'Élève créé avec succès' })
   @ApiResponse({ status: 400, description: 'Données invalides' })
   @ApiResponse({ status: 404, description: 'École non trouvée' })
@@ -331,7 +331,7 @@ export class AdminController {
 
   @Post('schools/:schoolId/students/import')
   @Roles(Role.ADMIN_MELIO)
-  @ApiOperation({ summary: "Importer des élèves depuis Excel (Admin)" })
+  @ApiOperation({ summary: 'Importer des élèves depuis Excel (Admin)' })
   @ApiResponse({ status: 201, description: 'Import réussi' })
   @ApiResponse({ status: 400, description: 'Fichier invalide ou données incorrectes' })
   @ApiResponse({ status: 404, description: 'École non trouvée' })

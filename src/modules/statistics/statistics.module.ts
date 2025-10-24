@@ -9,4 +9,3 @@ import { PrismaService } from '../../config/prisma.service';
   exports: [StatisticsService],
 })
 export class StatisticsModule {}
-

@@ -37,11 +37,11 @@ export class ChatService {
     const riskAnalysis = await this.chatRiskAnalysis.analyzeChatRisk(
       studentId,
       createMessageDto.content,
-      conversationHistory
+      conversationHistory,
     );
 
     this.logger.log(
-      `Chat risk analysis for student ${studentId}: ${riskAnalysis.riskLevel} (${riskAnalysis.riskScore}/100)`
+      `Chat risk analysis for student ${studentId}: ${riskAnalysis.riskLevel} (${riskAnalysis.riskScore}/100)`,
     );
 
     // Créer le message de l'élève
@@ -69,7 +69,7 @@ export class ChatService {
     if (['ELEVE', 'CRITIQUE'].includes(riskAnalysis.riskLevel)) {
       await this.createChatAlert(studentId, student.schoolId, userMessage.id, riskAnalysis);
       this.logger.log(
-        `Chat alert created for student ${studentId} with risk level: ${riskAnalysis.riskLevel}`
+        `Chat alert created for student ${studentId} with risk level: ${riskAnalysis.riskLevel}`,
       );
     }
 
@@ -258,7 +258,7 @@ export class ChatService {
     studentId: string,
     schoolId: string,
     sourceId: string,
-    riskAnalysis: any
+    riskAnalysis: any,
   ): Promise<void> {
     const student = await this.prisma.student.findUnique({
       where: { id: studentId },

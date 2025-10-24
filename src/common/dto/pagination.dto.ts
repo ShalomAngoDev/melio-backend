@@ -68,11 +68,7 @@ export interface QueryOptions {
  * Helper pour calculer la pagination
  */
 export class PaginationHelper {
-  static calculatePagination(
-    total: number,
-    page: number,
-    limit: number,
-  ) {
+  static calculatePagination(total: number, page: number, limit: number) {
     const totalPages = Math.ceil(total / limit);
     const hasNext = page < totalPages;
     const hasPrev = page > 1;
@@ -100,4 +96,3 @@ export class PaginationHelper {
     }
   }
 }
-

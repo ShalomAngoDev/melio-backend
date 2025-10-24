@@ -28,7 +28,7 @@ export class ChatRiskAnalysisService {
   async analyzeChatRisk(
     studentId: string,
     newMessage: string,
-    conversationHistory: any[] = []
+    conversationHistory: any[] = [],
   ): Promise<ChatRiskAnalysis> {
     this.logger.log(`Analyse de risque pour conversation de l'élève ${studentId}`);
 
@@ -39,19 +39,19 @@ export class ChatRiskAnalysisService {
 
     // Analyser le nouveau message
     const messageAnalysis = this.analyzeMessage(newMessage);
-    
+
     // Analyser le contexte de la conversation
     const contextAnalysis = this.analyzeConversationContext(conversationHistory, newMessage);
-    
+
     // Analyser les patterns préoccupants
     const patternAnalysis = this.analyzeConcerningPatterns(conversationHistory);
-    
+
     // Calculer le score de risque global
     const riskScore = this.calculateRiskScore(messageAnalysis, contextAnalysis, patternAnalysis);
-    
+
     // Déterminer le niveau de risque
     const riskLevel = this.determineRiskLevel(riskScore);
-    
+
     // Générer le résumé et les conseils
     const summary = this.generateSummary(messageAnalysis, contextAnalysis, patternAnalysis);
     const advice = this.generateAdvice(riskLevel, messageAnalysis.dominantCategory);
@@ -65,12 +65,12 @@ export class ChatRiskAnalysisService {
       concerningPatterns: patternAnalysis.patterns,
       conversationContext: {
         totalMessages: conversationHistory.length,
-        recentMessages: conversationHistory.filter(m => 
-          new Date(m.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+        recentMessages: conversationHistory.filter(
+          (m) => new Date(m.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000),
         ).length,
         emotionalTone: contextAnalysis.emotionalTone,
-        escalationTrend: patternAnalysis.escalationTrend
-      }
+        escalationTrend: patternAnalysis.escalationTrend,
+      },
     };
   }
 
@@ -85,12 +85,12 @@ export class ChatRiskAnalysisService {
       where: {
         studentId,
         createdAt: {
-          gte: startDate
-        }
+          gte: startDate,
+        },
       },
       orderBy: {
-        createdAt: 'asc'
-      }
+        createdAt: 'asc',
+      },
     });
   }
 
@@ -103,41 +103,107 @@ export class ChatRiskAnalysisService {
     emotionalIntensity: number;
   } {
     const lowerMessage = message.toLowerCase();
-    
+
     // Catégories de risque avec mots-clés
     const riskCategories = {
       violence: {
-        keywords: ['frapper', 'battre', 'cogner', 'taper', 'violence', 'agression', 'blesser', 'tuer', 'mourir'],
-        weight: 10
+        keywords: [
+          'frapper',
+          'battre',
+          'cogner',
+          'taper',
+          'violence',
+          'agression',
+          'blesser',
+          'tuer',
+          'mourir',
+        ],
+        weight: 10,
       },
       selfHarm: {
-        keywords: ['suicide', 'me tuer', 'me suicider', 'se tuer', 'finir', 'en finir', 'ras le bol', 'plus envie'],
-        weight: 15
+        keywords: [
+          'suicide',
+          'me tuer',
+          'me suicider',
+          'se tuer',
+          'finir',
+          'en finir',
+          'ras le bol',
+          'plus envie',
+        ],
+        weight: 15,
       },
       bullying: {
-        keywords: ['harcèlement', 'harceler', 'moquer', 'moquent', 'moque', 'insulter', 'insultent', 'insulte', 'embêter', 'embêtent', 'embête', 'taquiner', 'taquinent', 'taquine', 'exclure', 'excluent', 'rejeter', 'rejettent'],
-        weight: 8
+        keywords: [
+          'harcèlement',
+          'harceler',
+          'moquer',
+          'moquent',
+          'moque',
+          'insulter',
+          'insultent',
+          'insulte',
+          'embêter',
+          'embêtent',
+          'embête',
+          'taquiner',
+          'taquinent',
+          'taquine',
+          'exclure',
+          'excluent',
+          'rejeter',
+          'rejettent',
+        ],
+        weight: 8,
       },
       depression: {
-        keywords: ['déprimé', 'triste', 'pleurer', 'malheureux', 'vide', 'rien', 'inutile', 'nul', 'raté'],
-        weight: 6
+        keywords: [
+          'déprimé',
+          'triste',
+          'pleurer',
+          'malheureux',
+          'vide',
+          'rien',
+          'inutile',
+          'nul',
+          'raté',
+        ],
+        weight: 6,
       },
       anxiety: {
-        keywords: ['peur', 'anxiété', 'stress', 'panique', 'crise', 'angoisse', 'inquiet', 'inquiète'],
-        weight: 5
+        keywords: [
+          'peur',
+          'anxiété',
+          'stress',
+          'panique',
+          'crise',
+          'angoisse',
+          'inquiet',
+          'inquiète',
+        ],
+        weight: 5,
       },
       isolation: {
-        keywords: ['seul', 'seule', 'personne', 'ami', 'copain', 'isolement', 'rejeté', 'abandonné'],
-        weight: 4
+        keywords: [
+          'seul',
+          'seule',
+          'personne',
+          'ami',
+          'copain',
+          'isolement',
+          'rejeté',
+          'abandonné',
+        ],
+        weight: 4,
       },
       family: {
         keywords: ['parents', 'maman', 'papa', 'famille', 'maison', 'dispute', 'crier', 'punir'],
-        weight: 3
+        weight: 3,
       },
       school: {
         keywords: ['école', 'classe', 'prof', 'devoir', 'examen', 'notes', 'redoubler', 'exclu'],
-        weight: 2
-      }
+        weight: 2,
+      },
     };
 
     let maxScore = 0;
@@ -172,14 +238,17 @@ export class ChatRiskAnalysisService {
     return {
       dominantCategory,
       riskIndicators,
-      emotionalIntensity
+      emotionalIntensity,
     };
   }
 
   /**
    * Analyse le contexte de la conversation
    */
-  private analyzeConversationContext(conversationHistory: any[], _newMessage: string): {
+  private analyzeConversationContext(
+    conversationHistory: any[],
+    _newMessage: string,
+  ): {
     emotionalTone: string;
     frequency: number;
     escalationTrend: boolean;
@@ -188,14 +257,14 @@ export class ChatRiskAnalysisService {
       return {
         emotionalTone: 'neutral',
         frequency: 0,
-        escalationTrend: false
+        escalationTrend: false,
       };
     }
 
     // Analyser le ton émotionnel des messages récents
     const recentMessages = conversationHistory.slice(-10);
     const emotionalWords = ['triste', 'peur', 'colère', 'heureux', 'content', 'déprimé', 'anxieux'];
-    
+
     let emotionalTone = 'neutral';
     let emotionalCount = 0;
 
@@ -217,8 +286,8 @@ export class ChatRiskAnalysisService {
     }
 
     // Calculer la fréquence des messages
-    const last24Hours = conversationHistory.filter(m => 
-      new Date(m.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+    const last24Hours = conversationHistory.filter(
+      (m) => new Date(m.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000),
     ).length;
 
     // Détecter une tendance d'escalade
@@ -227,7 +296,7 @@ export class ChatRiskAnalysisService {
     return {
       emotionalTone,
       frequency: last24Hours,
-      escalationTrend
+      escalationTrend,
     };
   }
 
@@ -246,10 +315,10 @@ export class ChatRiskAnalysisService {
     }
 
     // Pattern 1: Messages répétitifs sur le même sujet
-    const userMessages = conversationHistory.filter(m => m.sender === 'USER');
-    const recentTopics = userMessages.slice(-5).map(m => this.extractMainTopic(m.content));
+    const userMessages = conversationHistory.filter((m) => m.sender === 'USER');
+    const recentTopics = userMessages.slice(-5).map((m) => this.extractMainTopic(m.content));
     const uniqueTopics = new Set(recentTopics);
-    
+
     if (uniqueTopics.size <= 2 && userMessages.length >= 5) {
       patterns.push('Répétition obsessionnelle sur un sujet');
     }
@@ -261,24 +330,28 @@ export class ChatRiskAnalysisService {
     }
 
     // Pattern 3: Messages très courts et vagues
-    const shortVagueMessages = userMessages.filter(m => 
-      m.content.length < 10 && 
-      (m.content.includes('...') || m.content.includes('??') || m.content.includes('!!'))
+    const shortVagueMessages = userMessages.filter(
+      (m) =>
+        m.content.length < 10 &&
+        (m.content.includes('...') || m.content.includes('??') || m.content.includes('!!')),
     );
-    
+
     if (shortVagueMessages.length >= 3) {
       patterns.push('Messages courts et vagues répétés');
     }
 
     // Pattern 4: Évitement des questions du bot
-    const botQuestions = conversationHistory.filter(m => 
-      m.sender === 'BOT' && m.content.includes('?')
+    const botQuestions = conversationHistory.filter(
+      (m) => m.sender === 'BOT' && m.content.includes('?'),
     );
     const ignoredQuestions = botQuestions.filter((_, index) => {
-      const nextUserMessage = userMessages.find(m => 
-        new Date(m.createdAt) > new Date(botQuestions[index].createdAt)
+      const nextUserMessage = userMessages.find(
+        (m) => new Date(m.createdAt) > new Date(botQuestions[index].createdAt),
       );
-      return nextUserMessage && !this.isDirectAnswer(nextUserMessage.content, botQuestions[index].content);
+      return (
+        nextUserMessage &&
+        !this.isDirectAnswer(nextUserMessage.content, botQuestions[index].content)
+      );
     });
 
     if (ignoredQuestions.length >= 2) {
@@ -294,7 +367,7 @@ export class ChatRiskAnalysisService {
   private calculateRiskScore(
     messageAnalysis: any,
     contextAnalysis: any,
-    patternAnalysis: any
+    patternAnalysis: any,
   ): number {
     let score = 0;
 
@@ -328,7 +401,11 @@ export class ChatRiskAnalysisService {
   /**
    * Génère un résumé de l'analyse
    */
-  private generateSummary(messageAnalysis: any, contextAnalysis: any, patternAnalysis: any): string {
+  private generateSummary(
+    messageAnalysis: any,
+    contextAnalysis: any,
+    patternAnalysis: any,
+  ): string {
     const parts: string[] = [];
 
     if (messageAnalysis.dominantCategory !== 'general') {
@@ -351,10 +428,12 @@ export class ChatRiskAnalysisService {
    */
   private generateAdvice(riskLevel: string, _category: string): string {
     const adviceMap = {
-      CRITIQUE: 'Intervention immédiate requise. Contacter les parents et les services d\'urgence si nécessaire.',
-      ELEVE: 'Surveillance renforcée recommandée. Planifier un entretien avec l\'élève et les parents.',
-      MOYEN: 'Suivi attentif nécessaire. Encourager l\'élève à parler à un adulte de confiance.',
-      FAIBLE: 'Continuer le suivi normal. Maintenir une communication bienveillante.'
+      CRITIQUE:
+        "Intervention immédiate requise. Contacter les parents et les services d'urgence si nécessaire.",
+      ELEVE:
+        "Surveillance renforcée recommandée. Planifier un entretien avec l'élève et les parents.",
+      MOYEN: "Suivi attentif nécessaire. Encourager l'élève à parler à un adulte de confiance.",
+      FAIBLE: 'Continuer le suivi normal. Maintenir une communication bienveillante.',
     };
 
     return adviceMap[riskLevel] || adviceMap.FAIBLE;
@@ -366,15 +445,13 @@ export class ChatRiskAnalysisService {
   private detectEscalationTrend(conversationHistory: any[]): boolean {
     if (conversationHistory.length < 5) return false;
 
-    const userMessages = conversationHistory
-      .filter(m => m.sender === 'USER')
-      .slice(-5);
+    const userMessages = conversationHistory.filter((m) => m.sender === 'USER').slice(-5);
 
     if (userMessages.length < 3) return false;
 
     // Analyser l'intensité émotionnelle croissante
-    const intensities = userMessages.map(m => this.analyzeMessage(m.content).emotionalIntensity);
-    
+    const intensities = userMessages.map((m) => this.analyzeMessage(m.content).emotionalIntensity);
+
     // Vérifier si l'intensité augmente
     let increasingCount = 0;
     for (let i = 1; i < intensities.length; i++) {
@@ -391,13 +468,13 @@ export class ChatRiskAnalysisService {
    */
   private extractMainTopic(content: string): string {
     const lowerContent = content.toLowerCase();
-    
+
     if (lowerContent.includes('école') || lowerContent.includes('classe')) return 'école';
     if (lowerContent.includes('famille') || lowerContent.includes('parents')) return 'famille';
     if (lowerContent.includes('ami') || lowerContent.includes('copain')) return 'amitié';
     if (lowerContent.includes('triste') || lowerContent.includes('pleurer')) return 'tristesse';
     if (lowerContent.includes('peur') || lowerContent.includes('stress')) return 'anxiété';
-    
+
     return 'général';
   }
 
@@ -409,8 +486,6 @@ export class ChatRiskAnalysisService {
     const lowerUser = userMessage.toLowerCase();
     const lowerBot = botQuestion.toLowerCase();
 
-    return questionWords.some(word => 
-      lowerBot.includes(word) && lowerUser.length > 10
-    );
+    return questionWords.some((word) => lowerBot.includes(word) && lowerUser.length > 10);
   }
 }

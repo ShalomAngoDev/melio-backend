@@ -179,4 +179,3 @@ export class StudentIdGeneratorService {
     return checksum === expectedChecksum;
   }
 }
-

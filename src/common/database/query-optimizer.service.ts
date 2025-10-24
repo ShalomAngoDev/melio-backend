@@ -18,7 +18,14 @@ export class QueryOptimizerService {
    */
   async createOptimalIndexes(): Promise<void> {
     // Vérifier d'abord si les tables existent
-    const tablesToCheck = ['alerts', 'reports', 'journal_entries', 'agent_schools', 'students', 'chat_messages'];
+    const tablesToCheck = [
+      'alerts',
+      'reports',
+      'journal_entries',
+      'agent_schools',
+      'students',
+      'chat_messages',
+    ];
     const existingTables = new Set<string>();
 
     for (const table of tablesToCheck) {
@@ -33,54 +40,72 @@ export class QueryOptimizerService {
 
     const indexes = [
       // Index pour les alertes (noms de colonnes corrects selon le schéma)
-      ...(existingTables.has('alerts') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_school_status ON alerts("schoolId", status)',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_created_at ON alerts("createdAt" DESC)',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_risk_level ON alerts("riskLevel")',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_student_id ON alerts("studentId")',
-      ] : []),
+      ...(existingTables.has('alerts')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_school_status ON alerts("schoolId", status)',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_created_at ON alerts("createdAt" DESC)',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_risk_level ON alerts("riskLevel")',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_student_id ON alerts("studentId")',
+          ]
+        : []),
 
       // Index pour les signalements
-      ...(existingTables.has('reports') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_school_status ON reports("schoolId", status)',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_created_at ON reports("createdAt" DESC)',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_urgency ON reports(urgency)',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_student_id ON reports("studentId")',
-      ] : []),
+      ...(existingTables.has('reports')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_school_status ON reports("schoolId", status)',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_created_at ON reports("createdAt" DESC)',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_urgency ON reports(urgency)',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_student_id ON reports("studentId")',
+          ]
+        : []),
 
       // Index pour les élèves
-      ...(existingTables.has('students') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_school_class ON students("schoolId", "className")',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_unique_id ON students("uniqueId")',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_sex ON students(sex)',
-      ] : []),
+      ...(existingTables.has('students')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_school_class ON students("schoolId", "className")',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_unique_id ON students("uniqueId")',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_sex ON students(sex)',
+          ]
+        : []),
 
       // Index pour les messages de chat
-      ...(existingTables.has('chat_messages') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chat_messages_student_created ON chat_messages("studentId", "createdAt" DESC)',
-      ] : []),
+      ...(existingTables.has('chat_messages')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chat_messages_student_created ON chat_messages("studentId", "createdAt" DESC)',
+          ]
+        : []),
 
       // Index pour les entrées de journal
-      ...(existingTables.has('journal_entries') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_journal_entries_student_created ON journal_entries("studentId", "createdAt" DESC)',
-      ] : []),
+      ...(existingTables.has('journal_entries')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_journal_entries_student_created ON journal_entries("studentId", "createdAt" DESC)',
+          ]
+        : []),
 
       // Index pour les statistiques
-      ...(existingTables.has('agent_schools') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_agent_id ON agent_schools(agent_id)',
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_school_id ON agent_schools(school_id)',
-      ] : []),
+      ...(existingTables.has('agent_schools')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_agent_id ON agent_schools(agent_id)',
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_agent_schools_school_id ON agent_schools(school_id)',
+          ]
+        : []),
 
       // Index composites pour les requêtes complexes
-      ...(existingTables.has('alerts') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_school_status_created ON alerts("schoolId", status, "createdAt" DESC)',
-      ] : []),
-      ...(existingTables.has('reports') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_school_status_created ON reports("schoolId", status, "createdAt" DESC)',
-      ] : []),
-      ...(existingTables.has('students') ? [
-        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_school_sex_class ON students("schoolId", sex, "className")',
-      ] : []),
+      ...(existingTables.has('alerts')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_alerts_school_status_created ON alerts("schoolId", status, "createdAt" DESC)',
+          ]
+        : []),
+      ...(existingTables.has('reports')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reports_school_status_created ON reports("schoolId", status, "createdAt" DESC)',
+          ]
+        : []),
+      ...(existingTables.has('students')
+        ? [
+            'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_students_school_sex_class ON students("schoolId", sex, "className")',
+          ]
+        : []),
     ];
 
     for (const indexQuery of indexes) {
@@ -120,7 +145,7 @@ export class QueryOptimizerService {
     ]);
 
     const duration = Date.now() - startTime;
-    
+
     if (duration > 1000) {
       this.logger.warn(`⚠️ Requête lente détectée: ${duration}ms`);
     }
@@ -218,11 +243,7 @@ export class QueryOptimizerService {
 
     return this.optimizedPaginatedQuery(this.prisma.student, {
       where,
-      orderBy: [
-        { className: 'asc' },
-        { lastName: 'asc' },
-        { firstName: 'asc' },
-      ],
+      orderBy: [{ className: 'asc' }, { lastName: 'asc' }, { firstName: 'asc' }],
       select: {
         id: true,
         firstName: true,
@@ -263,37 +284,37 @@ export class QueryOptimizerService {
       this.prisma.student.count({ where: { schoolId } }),
       this.prisma.alert.count({ where: { schoolId } }),
       this.prisma.report.count({ where: { schoolId } }),
-      
+
       this.prisma.alert.groupBy({
         by: ['status'],
         where: { schoolId },
         _count: { status: true },
       }),
-      
+
       this.prisma.report.groupBy({
         by: ['status'],
         where: { schoolId },
         _count: { status: true },
       }),
-      
+
       this.prisma.alert.groupBy({
         by: ['riskLevel'],
         where: { schoolId },
         _count: { riskLevel: true },
       }),
-      
+
       this.prisma.report.groupBy({
         by: ['urgency'],
         where: { schoolId },
         _count: { urgency: true },
       }),
-      
+
       this.prisma.student.groupBy({
         by: ['className'],
         where: { schoolId },
         _count: { className: true },
       }),
-      
+
       this.prisma.student.groupBy({
         by: ['sex'],
         where: { schoolId },
@@ -302,41 +323,59 @@ export class QueryOptimizerService {
     ]);
 
     const duration = Date.now() - startTime;
-    
+
     if (duration > 2000) {
       this.logger.warn(`⚠️ Statistiques lentes: ${duration}ms`);
     }
 
     // Transformer les données
-    const alertsByStatusMap = alertsByStatus.reduce((acc, item) => {
-      acc[item.status] = item._count.status;
-      return acc;
-    }, {} as Record<string, number>);
+    const alertsByStatusMap = alertsByStatus.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count.status;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const reportsByStatusMap = reportsByStatus.reduce((acc, item) => {
-      acc[item.status] = item._count.status;
-      return acc;
-    }, {} as Record<string, number>);
+    const reportsByStatusMap = reportsByStatus.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count.status;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const alertsByRiskLevelMap = alertsByRiskLevel.reduce((acc, item) => {
-      acc[item.riskLevel] = item._count.riskLevel;
-      return acc;
-    }, {} as Record<string, number>);
+    const alertsByRiskLevelMap = alertsByRiskLevel.reduce(
+      (acc, item) => {
+        acc[item.riskLevel] = item._count.riskLevel;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const reportsByUrgencyMap = reportsByUrgency.reduce((acc, item) => {
-      acc[item.urgency] = item._count.urgency;
-      return acc;
-    }, {} as Record<string, number>);
+    const reportsByUrgencyMap = reportsByUrgency.reduce(
+      (acc, item) => {
+        acc[item.urgency] = item._count.urgency;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const studentsByClassMap = studentsByClass.reduce((acc, item) => {
-      acc[item.className] = item._count.className;
-      return acc;
-    }, {} as Record<string, number>);
+    const studentsByClassMap = studentsByClass.reduce(
+      (acc, item) => {
+        acc[item.className] = item._count.className;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const studentsBySexMap = studentsBySex.reduce((acc, item) => {
-      acc[item.sex] = item._count.sex;
-      return acc;
-    }, {} as Record<string, number>);
+    const studentsBySexMap = studentsBySex.reduce(
+      (acc, item) => {
+        acc[item.sex] = item._count.sex;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return {
       totalStudents,
@@ -373,7 +412,9 @@ export class QueryOptimizerService {
       this.logger.log('🔍 Top 10 des requêtes les plus lentes:');
       console.table(result);
     } catch (error) {
-      this.logger.warn('Impossible d\'analyser les performances (pg_stat_statements non disponible)');
+      this.logger.warn(
+        "Impossible d'analyser les performances (pg_stat_statements non disponible)",
+      );
     }
   }
 }

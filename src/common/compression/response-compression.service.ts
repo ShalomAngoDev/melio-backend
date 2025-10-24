@@ -52,11 +52,11 @@ export class ResponseCompressionService {
     try {
       const encodings = this.parseAcceptEncoding(acceptEncoding);
       const compressionResult = await this.chooseBestCompression(serializedData, encodings);
-      
+
       // Mettre en cache si la compression est significative
       if (compressionResult.compressionRatio > 0.3) {
         this.compressionCache.set(cacheKey, compressionResult.data);
-        
+
         // Limiter la taille du cache
         if (this.compressionCache.size > 1000) {
           const firstKey = this.compressionCache.keys().next().value;
@@ -89,12 +89,12 @@ export class ResponseCompressionService {
     contentType: string = 'application/json',
   ): Promise<void> {
     const compressionResult = await this.compressResponse(data, acceptEncoding, contentType);
-    
+
     res.set({
       'Content-Type': contentType,
       'Content-Encoding': compressionResult.encoding,
       'Content-Length': compressionResult.size.toString(),
-      'Vary': 'Accept-Encoding',
+      Vary: 'Accept-Encoding',
       'Cache-Control': 'public, max-age=300', // 5 minutes
     });
 
@@ -106,11 +106,11 @@ export class ResponseCompressionService {
    */
   private parseAcceptEncoding(acceptEncoding: string): string[] {
     if (!acceptEncoding) return ['identity'];
-    
+
     return acceptEncoding
       .split(',')
-      .map(encoding => encoding.trim().split(';')[0])
-      .filter(encoding => ['gzip', 'deflate', 'br', 'identity'].includes(encoding));
+      .map((encoding) => encoding.trim().split(';')[0])
+      .filter((encoding) => ['gzip', 'deflate', 'br', 'identity'].includes(encoding));
   }
 
   /**
@@ -118,11 +118,11 @@ export class ResponseCompressionService {
    */
   private getBestEncoding(acceptEncoding: string): string {
     const encodings = this.parseAcceptEncoding(acceptEncoding);
-    
+
     if (encodings.includes('br')) return 'br';
     if (encodings.includes('gzip')) return 'gzip';
     if (encodings.includes('deflate')) return 'deflate';
-    
+
     return 'identity';
   }
 
@@ -140,7 +140,7 @@ export class ResponseCompressionService {
     for (const encoding of encodings) {
       try {
         let compressedData: Buffer;
-        
+
         switch (encoding) {
           case 'br':
             compressedData = await brotliCompress(data, {
@@ -150,25 +150,25 @@ export class ResponseCompressionService {
               },
             });
             break;
-            
+
           case 'gzip':
             compressedData = await gzip(data, { level: 6 });
             break;
-            
+
           case 'deflate':
             compressedData = await deflate(data, { level: 6 });
             break;
-            
+
           case 'identity':
             compressedData = Buffer.from(data, 'utf8');
             break;
-            
+
           default:
             continue;
         }
 
-        const compressionRatio = 1 - (compressedData.length / originalSize);
-        
+        const compressionRatio = 1 - compressedData.length / originalSize;
+
         results.push({
           data: compressedData,
           encoding,
@@ -188,8 +188,8 @@ export class ResponseCompressionService {
       };
     }
 
-    return results.reduce((best, current) => 
-      current.compressionRatio > best.compressionRatio ? current : best
+    return results.reduce((best, current) =>
+      current.compressionRatio > best.compressionRatio ? current : best,
     );
   }
 
@@ -199,22 +199,22 @@ export class ResponseCompressionService {
   optimizeDataForCompression(data: any): any {
     if (Array.isArray(data)) {
       // Supprimer les propriétés vides des objets dans un tableau
-      return data.map(item => this.optimizeDataForCompression(item));
+      return data.map((item) => this.optimizeDataForCompression(item));
     }
-    
+
     if (typeof data === 'object' && data !== null) {
       const optimized: any = {};
-      
+
       for (const [key, value] of Object.entries(data)) {
         // Ignorer les propriétés vides ou null
         if (value !== null && value !== undefined && value !== '') {
           optimized[key] = this.optimizeDataForCompression(value);
         }
       }
-      
+
       return optimized;
     }
-    
+
     return data;
   }
 
@@ -241,4 +241,3 @@ export class ResponseCompressionService {
     this.logger.log('Cache de compression nettoyé');
   }
 }
-

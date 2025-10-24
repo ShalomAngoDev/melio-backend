@@ -935,13 +935,10 @@ export class AdminService {
 
     const students = await this.prisma.student.findMany({
       where: whereClause,
-      orderBy: [
-        { lastName: 'asc' },
-        { firstName: 'asc' },
-      ],
+      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     });
 
-    return students.map(student => ({
+    return students.map((student) => ({
       id: student.id,
       firstName: student.firstName,
       lastName: student.lastName,
@@ -983,7 +980,7 @@ export class AdminService {
         uniqueId: uniqueId,
         uniqueIdVer: 1, // Version actuelle de l'algorithme
         school: {
-          connect: { id: schoolId }
+          connect: { id: schoolId },
         },
       },
     });
@@ -1105,7 +1102,7 @@ export class AdminService {
             uniqueId: uniqueId,
             uniqueIdVer: 1, // Version actuelle de l'algorithme
             school: {
-              connect: { id: schoolId }
+              connect: { id: schoolId },
             },
           },
         });

@@ -110,15 +110,7 @@ import { UploadModule } from './modules/upload/upload.module';
     AchievementsModule, // V2: Gamification (badges et streaks)
     UploadModule, // V2: Upload de photos
   ],
-  providers: [
-    CacheService,
-    QueryOptimizerService,
-    ResponseCompressionService,
-  ],
-  exports: [
-    CacheService,
-    QueryOptimizerService,
-    ResponseCompressionService,
-  ],
+  providers: [CacheService, QueryOptimizerService, ResponseCompressionService],
+  exports: [CacheService, QueryOptimizerService, ResponseCompressionService],
 })
 export class AppModule {}

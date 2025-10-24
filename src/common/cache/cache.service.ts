@@ -39,7 +39,7 @@ export class CacheService {
     try {
       const value = await this.redis.get(key);
       if (!value) return null;
-      
+
       return JSON.parse(value);
     } catch (error) {
       this.logger.warn(`Erreur lors de la récupération du cache ${key}:`, error);
@@ -164,19 +164,16 @@ export class CacheService {
       `stats:school:${schoolId}:*`,
     ];
 
-    await Promise.all(patterns.map(pattern => this.invalidatePattern(pattern)));
+    await Promise.all(patterns.map((pattern) => this.invalidatePattern(pattern)));
   }
 
   /**
    * Invalidation pour les données d'un agent
    */
   async invalidateAgentData(agentId: string): Promise<void> {
-    const patterns = [
-      `agent:${agentId}:*`,
-      `schools:agent:${agentId}:*`,
-    ];
+    const patterns = [`agent:${agentId}:*`, `schools:agent:${agentId}:*`];
 
-    await Promise.all(patterns.map(pattern => this.invalidatePattern(pattern)));
+    await Promise.all(patterns.map((pattern) => this.invalidatePattern(pattern)));
   }
 
   /**

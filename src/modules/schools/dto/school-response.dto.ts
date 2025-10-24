@@ -55,4 +55,3 @@ export class SchoolResponseDto {
   @ApiProperty({ description: 'Date de dernière mise à jour' })
   updatedAt: string;
 }
-
