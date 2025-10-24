@@ -482,7 +482,7 @@ async function seedComplete() {
       'Je me sens seul à l\'école. Personne ne veut jouer avec moi.',
     ];
 
-    const moods = ['HAPPY', 'SAD', 'ANGRY', 'WORRIED', 'EXCITED', 'CALM', 'CONFUSED', 'PROUD'];
+    const moods = ['TRES_TRISTE', 'TRISTE', 'NEUTRE', 'CONTENT', 'TRES_HEUREUX'];
     const journalTags = ['tag_school', 'tag_friends', 'tag_family', 'tag_sport', 'tag_creativity', 'tag_homework', 'tag_thoughts', 'tag_emotions', 'tag_event', 'tag_difficulty', 'tag_success', 'tag_help'];
 
     for (let i = 0; i < 50; i++) {
