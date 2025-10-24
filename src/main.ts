@@ -32,7 +32,7 @@ async function bootstrap() {
   // Seed complet avec toutes les données
   try {
     console.log('🌱 Running complete seed...');
-    execSync('npx ts-node prisma/seed-complete.ts', { stdio: 'inherit' });
+    execSync('npm run prisma:seed', { stdio: 'inherit' });
     console.log('✅ Complete seed completed');
   } catch (seedError) {
     console.error('⚠️ Complete seed warning:', seedError.message);
