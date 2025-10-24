@@ -12,13 +12,31 @@ import { QueryOptimizerService } from './common/database/query-optimizer.service
 async function bootstrap() {
   console.log('🚀 Starting Melio Backend...');
 
-  // Exécuter les migrations Prisma
+  // Reset complet de la base de données
   try {
-    console.log('🔄 Running Prisma migrations...');
-    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-    console.log('✅ Prisma migrations completed');
+    console.log('🗑️ Resetting database...');
+    execSync('npx prisma db push --force-reset', { stdio: 'inherit' });
+    console.log('✅ Database reset completed');
   } catch (error) {
-    console.error('❌ Prisma migration failed:', error.message);
+    console.error('❌ Database reset failed:', error.message);
+    // Essayer une approche plus douce
+    try {
+      console.log('🔄 Trying gentle migration...');
+      execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+      console.log('✅ Gentle migration completed');
+    } catch (migrateError) {
+      console.error('⚠️ Migration warning:', migrateError.message);
+    }
+  }
+
+  // Seed complet avec toutes les données
+  try {
+    console.log('🌱 Running complete seed...');
+    execSync('npx ts-node prisma/seed-complete.ts', { stdio: 'inherit' });
+    console.log('✅ Complete seed completed');
+  } catch (seedError) {
+    console.error('⚠️ Complete seed warning:', seedError.message);
+    // Ne pas bloquer le démarrage si le seed échoue
   }
 
   // Créer le compte admin si nécessaire (production et développement)

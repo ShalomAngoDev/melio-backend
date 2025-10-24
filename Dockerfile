@@ -46,5 +46,5 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:$PORT/api/v1/health || exit 1
 
-# Start application with complete seed
-CMD ["npm", "run", "use:seed"]
+# Start application
+CMD ["npm", "run", "start:prod"]
